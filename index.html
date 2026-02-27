@@ -6,51 +6,45 @@
     <title>WIND CLIENT | Premium Cloud</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Montserrat:wght@300;600;800&display=swap" rel="stylesheet">
     <style>
         :root {
             --accent: #c084fc;
             --bg: #050508;
-            --card-bg: rgba(13, 12, 26, 0.85);
+            --card-bg: rgba(13, 12, 26, 0.9);
             --border: rgba(192, 132, 252, 0.3);
+            --gold: #fbbf24;
+            --blue: #60a5fa;
         }
 
         body {
             background: var(--bg);
             background-image: 
-                radial-gradient(circle at 20% 30%, rgba(192, 132, 252, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(192, 132, 252, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, rgba(192, 132, 252, 0.08) 0%, transparent 50%);
             color: white;
             font-family: 'Montserrat', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            overflow: hidden;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .card {
             background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            padding: 50px 40px;
+            backdrop-filter: blur(20px);
+            padding: 40px;
             border-radius: 40px;
             border: 1px solid var(--border);
             text-align: center;
-            width: 420px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            position: relative;
-            z-index: 1;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--accent), transparent, var(--accent));
-            border-radius: 40px;
-            z-index: -1;
-            opacity: 0.2;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            transition: all 0.5s ease;
         }
 
         h1 {
@@ -59,18 +53,18 @@
             background: linear-gradient(to bottom, #fff, var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 32px;
-            margin-bottom: 30px;
-            letter-spacing: 4px;
+            font-size: 28px;
+            margin-bottom: 25px;
+            letter-spacing: 3px;
         }
 
-        /* Табы */
+        /* Tabs */
         .tabs {
             display: flex;
             background: rgba(255, 255, 255, 0.03);
             border-radius: 20px;
-            padding: 6px;
-            margin-bottom: 30px;
+            padding: 5px;
+            margin-bottom: 25px;
             border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
@@ -79,10 +73,10 @@
             padding: 12px;
             cursor: pointer;
             border-radius: 15px;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: 0.3s;
             font-weight: 600;
-            font-size: 13px;
-            color: #666;
+            font-size: 12px;
+            color: #777;
             border: none;
             background: none;
             letter-spacing: 1px;
@@ -91,93 +85,90 @@
         .tab.active {
             background: var(--accent);
             color: #000;
-            box-shadow: 0 10px 20px rgba(192, 132, 252, 0.3);
         }
 
-        /* Поля ввода */
-        .input-group {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
+        /* Inputs */
         input {
             width: 100%;
             padding: 16px 20px;
-            background: rgba(0, 0, 0, 0.2);
+            margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 18px;
             color: white;
             box-sizing: border-box;
             outline: none;
-            font-family: 'Montserrat';
-            font-size: 15px;
             transition: 0.3s;
         }
 
         input:focus {
             border-color: var(--accent);
-            background: rgba(192, 132, 252, 0.03);
-            box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.1);
+            box-shadow: 0 0 15px rgba(192, 132, 252, 0.1);
         }
 
-        /* Кнопки */
+        /* Buttons */
         .main-btn {
             width: 100%;
-            padding: 18px;
-            margin-top: 20px;
+            padding: 16px;
             background: var(--accent);
             border: none;
-            border-radius: 20px;
+            border-radius: 18px;
             color: #000;
-            font-weight: 900;
+            font-weight: 800;
             cursor: pointer;
             transition: 0.3s;
-            font-size: 15px;
+            font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 2px;
             font-family: 'Orbitron';
         }
 
         .main-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(192, 132, 252, 0.4);
-            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(192, 132, 252, 0.3);
         }
 
-        .hidden { display: none; }
-        
-        .status {
-            font-size: 12px;
+        /* Shop Grid */
+        .shop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-top: 20px;
-            color: var(--accent);
-            opacity: 0.8;
-            font-weight: 600;
         }
 
-        /* Dashboard Стили */
-        .user-card {
-            background: linear-gradient(135deg, rgba(192, 132, 252, 0.1), transparent);
-            padding: 25px;
+        .shop-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 22px;
+            transition: 0.3s;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .shop-item:hover {
+            border-color: var(--accent);
+            background: rgba(192, 132, 252, 0.05);
+        }
+
+        .item-name { font-size: 10px; font-weight: 800; color: #aaa; margin-bottom: 4px; text-transform: uppercase; }
+        .item-cost { font-size: 14px; font-weight: 800; }
+        .item-cost span { font-size: 10px; opacity: 0.5; font-weight: 400; }
+
+        .full { grid-column: span 2; }
+        .premium { border-color: var(--gold); background: rgba(251, 191, 36, 0.03); }
+        .premium:hover { border-color: var(--gold); background: rgba(251, 191, 36, 0.08); }
+
+        .status { font-size: 11px; margin-top: 15px; color: var(--accent); font-weight: 600; }
+        .hidden { display: none; }
+
+        .user-info {
+            background: rgba(192, 132, 252, 0.05);
+            padding: 20px;
             border-radius: 25px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(192, 132, 252, 0.2);
-        }
-
-        .dl-btn {
-            background: #fff !important;
-            color: #000 !important;
-            margin-bottom: 12px;
-        }
-
-        .buy-btn {
-            background: transparent !important;
-            border: 2px solid var(--accent) !important;
-            color: var(--accent) !important;
-        }
-
-        .buy-btn:hover {
-            background: var(--accent) !important;
-            color: #000 !important;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
     </style>
 </head>
@@ -185,39 +176,55 @@
 
 <div id="authBox" class="card">
     <h1>WIND CLOUD</h1>
-    
     <div class="tabs">
-        <button id="t-login" class="tab active" onclick="setMode('login')">LOGIN</button>
-        <button id="t-reg" class="tab" onclick="setMode('reg')">REGISTER</button>
+        <button id="t-login" class="tab active" onclick="setMode('login')">ВХОД</button>
+        <button id="t-reg" class="tab" onclick="setMode('reg')">РЕГИСТРАЦИЯ</button>
     </div>
-
-    <div class="input-group">
-        <input type="text" id="user" placeholder="Username">
-    </div>
-    <div class="input-group">
-        <input type="password" id="pass" placeholder="Password">
-    </div>
-    
+    <input type="text" id="user" placeholder="Username">
+    <input type="password" id="pass" placeholder="Password">
     <button id="actionBtn" class="main-btn" onclick="startAuth()">AUTHORIZE</button>
-    <div id="status" class="status">SYSTEM READY</div>
+    <div id="status" class="status">READY TO CONNECT</div>
 </div>
 
-<div id="dashBox" class="card hidden">
+<div id="dashBox" class="card hidden" style="max-width: 500px;">
     <h1>DASHBOARD</h1>
-    <div class="user-card">
-        <div id="u-name" style="font-size: 22px; font-weight: 600; margin-bottom: 8px;">USER: -</div>
-        <div id="u-uuid" style="color: var(--accent); font-family: 'Orbitron'; font-size: 14px;">UUID: #000</div>
+    <div class="user-info">
+        <div style="text-align: left;">
+            <div id="u-name" style="font-size: 18px; font-weight: 800;">USER</div>
+            <div id="u-uuid" style="color: var(--accent); font-size: 12px; font-family: 'Orbitron';">UUID: #000</div>
+        </div>
+        <button class="main-btn" style="width: auto; padding: 10px 15px; background: white;" onclick="window.location.href='https://github.com/WindClientFun/windclient/raw/main/launcher.exe'">
+            DOWNLOAD
+        </button>
     </div>
-    
-    <button class="main-btn dl-btn" onclick="window.location.href='ТВОЯ_ССЫЛКА_ТУТ'">
-        DOWNLOAD CLIENT
-    </button>
-    
-    <button class="main-btn buy-btn" onclick="window.open('https://t.me/TetrisWindClientbot', '_blank')">
-        PURCHASE VIP
-    </button>
-    
-    <p onclick="location.reload()" style="cursor:pointer; font-size: 11px; margin-top: 25px; opacity: 0.4; letter-spacing: 2px;">LOGOUT SYSTEM</p>
+
+    <div class="shop-grid">
+        <div class="shop-item" onclick="buy()">
+            <div class="item-name">30 ДНЕЙ</div>
+            <div class="item-cost">40 грн <span>/ 88 руб</span></div>
+        </div>
+        <div class="shop-item" onclick="buy()">
+            <div class="item-name">180 ДНЕЙ</div>
+            <div class="item-cost">100 грн <span>/ 220 руб</span></div>
+        </div>
+        <div class="shop-item" onclick="buy()">
+            <div class="item-name">365 ДНЕЙ</div>
+            <div class="item-cost">140 грн <span>/ 308 руб</span></div>
+        </div>
+        <div class="shop-item" onclick="buy()">
+            <div class="item-name">FOREVER</div>
+            <div class="item-cost">180 грн <span>/ 396 руб</span></div>
+        </div>
+        <div class="shop-item full" style="border-color: var(--blue);" onclick="buy()">
+            <div class="item-name" style="color: var(--blue);">UPGRADE TO PREMIUM</div>
+            <div class="item-cost">50 грн <span>/ 110 руб</span></div>
+        </div>
+        <div class="shop-item full premium" onclick="buy()">
+            <div class="item-name" style="color: var(--gold);">PREMIUM + CLIENT FOREVER</div>
+            <div class="item-cost">175 грн <span>/ 385 руб</span></div>
+        </div>
+    </div>
+    <p onclick="location.reload()" style="cursor:pointer; font-size: 10px; margin-top: 25px; opacity: 0.3; letter-spacing: 2px;">LOGOUT SYSTEM</p>
 </div>
 
 <script>
@@ -235,8 +242,11 @@
         mode = m;
         document.getElementById('t-login').classList.toggle('active', m === 'login');
         document.getElementById('t-reg').classList.toggle('active', m === 'reg');
-        document.getElementById('actionBtn').innerText = m === 'login' ? 'AUTHORIZE' : 'CREATE ACCOUNT';
-        document.getElementById('status').innerText = 'SYSTEM READY';
+        document.getElementById('actionBtn').innerText = m === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
+    }
+
+    function buy() {
+        window.open('https://t.me/TetrisWindClientbot', '_blank');
     }
 
     async function startAuth() {
@@ -245,14 +255,14 @@
         const s = document.getElementById('status');
 
         if(!u || !p) { s.innerText = 'FILL ALL FIELDS'; return; }
-        s.innerText = 'CONNECTING TO CLOUD...';
+        s.innerText = 'CONNECTING...';
 
         try {
             const ref = db.ref('users/' + u);
             const snap = await ref.once('value');
 
             if (mode === 'reg') {
-                if (snap.exists()) { s.innerText = 'USERNAME TAKEN'; }
+                if (snap.exists()) { s.innerText = 'NICKNAME TAKEN'; }
                 else {
                     const cSnap = await db.ref('users_count').once('value');
                     let nextID = (cSnap.val() || 0) + 1;
@@ -264,20 +274,17 @@
                 if (snap.exists() && snap.val().password === p) {
                     goDash(u, snap.val().uuid);
                 } else {
-                    s.innerText = 'ACCESS DENIED';
+                    s.innerText = 'INVALID DATA';
                 }
             }
-        } catch(e) { s.innerText = 'DATABASE ERROR'; }
+        } catch(e) { s.innerText = 'ERROR: ' + e.message; }
     }
 
     function goDash(name, id) {
-        document.getElementById('authBox').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('authBox').classList.add('hidden');
-            document.getElementById('dashBox').classList.remove('hidden');
-            document.getElementById('u-name').innerText = name.toUpperCase();
-            document.getElementById('u-uuid').innerText = "UUID: #" + id;
-        }, 300);
+        document.getElementById('authBox').classList.add('hidden');
+        document.getElementById('dashBox').classList.remove('hidden');
+        document.getElementById('u-name').innerText = name.toUpperCase();
+        document.getElementById('u-uuid').innerText = "UUID: #" + id;
     }
 </script>
 </body>
