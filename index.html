@@ -2,54 +2,62 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND CLIENT | Cloud Account</title>
+    <title>WIND CLIENT | Cloud</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 400px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); transition: 0.5s; }
-        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; font-size: 24px; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; }
-        button { width: 100%; padding: 15px; margin-top: 15px; background: #c084fc; border: none; border-radius: 12px; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
-        button:hover { background: #FFFFFF; transform: scale(1.02); }
-        .hidden { display: none; }
+        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 400px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); }
+        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; font-size: 24px; margin-bottom: 20px; }
         
-        /* Стили для Главной страницы (после регистрации) */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; background: #0d0d1a; border: 1px solid #2e2a5e; color: white; cursor: pointer; border-radius: 10px; transition: 0.3s; }
+        .tab-btn.active { background: #c084fc; color: black; font-weight: bold; }
+
+        input { width: 100%; padding: 12px; margin: 8px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; }
+        button.action-btn { width: 100%; padding: 15px; margin-top: 15px; background: #c084fc; border: none; border-radius: 12px; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        button.action-btn:hover { background: #FFFFFF; transform: scale(1.02); }
+
+        .hidden { display: none; }
         .user-info { background: #16162e; padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 4px solid #c084fc; text-align: left; }
-        .btn-download { background: #4ade80; color: black; margin-bottom: 10px; }
-        .btn-buy { background: #fbbf24; color: black; }
-        .status-msg { font-size: 13px; margin-top: 10px; color: #ef4444; }
+        .status-msg { font-size: 13px; margin-top: 10px; color: #ef4444; min-height: 20px; }
+        .btn-dl { background: #4ade80 !important; }
     </style>
 </head>
 <body>
 
-<div id="regScreen" class="card">
-    <h1>WIND REGISTRATION</h1>
-    <input type="text" id="user" placeholder="Придумайте ник">
-    <input type="password" id="pass" placeholder="Придумайте пароль">
-    <button onclick="register()">СОЗДАТЬ АККАУНТ</button>
-    <div id="status" class="status-msg" style="color: #888;">Введите данные для доступа</div>
+<div id="authContainer" class="card">
+    <h1 id="mainTitle">WIND CLOUD</h1>
+    
+    <div id="tabBar" class="tabs">
+        <button id="loginTab" class="tab-btn active" onclick="switchMode('login')">ВХОД</button>
+        <button id="regTab" class="tab-btn" onclick="switchMode('reg')">РЕГИСТРАЦИЯ</button>
+    </div>
+
+    <input type="text" id="userField" placeholder="Никнейм">
+    <input type="password" id="passField" placeholder="Пароль">
+    
+    <button id="submitBtn" class="action-btn" onclick="processAuth()">ВОЙТИ</button>
+    <div id="statusMsg" class="status-msg"></div>
 </div>
 
-<div id="mainScreen" class="card hidden">
+<div id="dashboard" class="card hidden">
     <h1>WIND DASHBOARD</h1>
     <div class="user-info">
-        <div id="displayUser" style="font-weight: bold; font-size: 18px;">USER: -</div>
-        <div id="displayUUID" style="color: #c084fc;">UUID: #0</div>
+        <div id="resUser" style="font-weight: bold; font-size: 18px; color: white;">USER: -</div>
+        <div id="resUUID" style="color: #c084fc;">UUID: #0</div>
     </div>
     
-    <p style="font-size: 14px; color: #aaa;">Добро пожаловать в Wind Client Cloud!</p>
-    
-    <button class="btn-download" onclick="window.location.href='https://github.com/WindClientFun/windclient/raw/main/launcher.exe'">
-        📥 СКАЧАТЬ ЛАУНЧЕР (.EXE)
+    <button class="action-btn btn-dl" onclick="window.location.href='ТВОЯ_ССЫЛКА_НА_ЛАУНЧЕР'">
+        📥 СКАЧАТЬ ЛАУНЧЕР
     </button>
     
-    <button class="btn-buy" onclick="window.open('https://t.me/TetrisWindClientbot', '_blank')">
-        ⭐ КУПИТЬ VIP / ПОДПИСКУ
+    <button class="action-btn" style="background: #fbbf24;" onclick="window.open('https://t.me/TetrisWindClientbot')">
+        ⭐ КУПИТЬ VIP
     </button>
     
-    <p style="font-size: 11px; margin-top: 15px; color: #555;">После скачивания используйте свои данные для входа.</p>
+    <button class="action-btn" style="background: #333; color: white; margin-top: 10px;" onclick="location.reload()">ВЫЙТИ</button>
 </div>
 
 <script>
@@ -62,39 +70,60 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    async function register() {
-        const user = document.getElementById('user').value.trim();
-        const pass = document.getElementById('pass').value.trim();
-        const status = document.getElementById('status');
+    let currentMode = 'login';
 
-        if (!user || !pass) { status.innerText = "❌ Заполните поля!"; return; }
+    function switchMode(mode) {
+        currentMode = mode;
+        document.getElementById('loginTab').classList.toggle('active', mode === 'login');
+        document.getElementById('regTab').classList.toggle('active', mode === 'reg');
+        document.getElementById('submitBtn').innerText = mode === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
+        document.getElementById('statusMsg').innerText = '';
+    }
 
-        status.innerText = "⏳ Обработка...";
-        
+    async function processAuth() {
+        const user = document.getElementById('userField').value.trim();
+        const pass = document.getElementById('passField').value.trim();
+        const status = document.getElementById('statusMsg');
+
+        if (!user || !pass) { status.innerText = "❌ Заполни поля!"; return; }
+
+        status.innerText = "⏳ Загрузка...";
+        status.style.color = "#c084fc";
+
         try {
             const userRef = db.ref('users/' + user);
             const snapshot = await userRef.once('value');
 
-            if (snapshot.exists()) {
-                status.innerText = "❌ Этот ник уже занят!";
+            if (currentMode === 'reg') {
+                // ЛОГИКА РЕГИСТРАЦИИ
+                if (snapshot.exists()) {
+                    status.innerText = "❌ Ник уже занят!";
+                } else {
+                    const countSnap = await db.ref('users_count').once('value');
+                    let newUUID = (countSnap.val() || 0) + 1;
+                    await userRef.set({ password: pass, uuid: newUUID });
+                    await db.ref('users_count').set(newUUID);
+                    showDash(user, newUUID);
+                }
             } else {
-                const countRef = db.ref('users_count');
-                const countSnap = await countRef.once('value');
-                let newUUID = (countSnap.val() || 0) + 1;
-
-                await userRef.set({ password: pass, uuid: newUUID });
-                await countRef.set(newUUID);
-
-                // ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ
-                document.getElementById('displayUser').innerText = "USER: " + user.toUpperCase();
-                document.getElementById('displayUUID').innerText = "UUID: #" + newUUID;
-                
-                document.getElementById('regScreen').classList.add('hidden');
-                document.getElementById('mainScreen').classList.remove('hidden');
+                // ЛОГИКА ВХОДА
+                if (snapshot.exists() && snapshot.val().password === pass) {
+                    showDash(user, snapshot.val().uuid);
+                } else {
+                    status.innerText = "❌ Неверный ник или пароль!";
+                    status.style.color = "#ef4444";
+                }
             }
         } catch (e) {
-            status.innerText = "❌ Ошибка базы. Проверьте Rules!";
+            status.innerText = "❌ Ошибка базы!";
         }
+    }
+
+    function showDash(user, uuid) {
+        document.getElementById('authContainer').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        document.getElementById('resUser').innerText = "USER: " + user.toUpperCase();
+        document.getElementById('resUUID').innerText = "UUID: #" + uuid;
     }
 </script>
 </body>
