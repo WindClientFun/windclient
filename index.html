@@ -3,191 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wind Client | The Next Generation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;900&display=swap" rel="stylesheet">
+    <title>Wind Client | Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #8A2BE2;
-            --secondary: #4b0082;
-            --accent: #d8b4fe;
-            --bg: #030005;
+            --clr-main: #a855f7;
+            --clr-second: #3b82f6;
+            --clr-bg: #030005;
         }
 
         body, html {
             margin: 0; padding: 0; min-height: 100vh;
             font-family: 'Montserrat', sans-serif;
-            color: white; background: var(--bg);
+            color: white; background: var(--clr-bg);
             overflow-x: hidden; scroll-behavior: smooth;
         }
 
+        /* Анимированный фон */
         #vanta-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; filter: brightness(0.6);
+            z-index: -1; filter: brightness(0.5);
         }
 
+        /* Эффект свечения заголовка */
         .hero {
             height: 100vh; display: flex; flex-direction: column;
             align-items: center; justify-content: center; text-align: center;
         }
 
-        .logo-glow {
-            font-size: clamp(50px, 10vw, 110px);
-            font-weight: 900; letter-spacing: -3px;
-            background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+        .logo-box { position: relative; }
+        
+        .logo {
+            font-size: clamp(60px, 15vw, 150px);
+            font-weight: 900; letter-spacing: -5px; margin: 0;
+            background: linear-gradient(to right, #fff, var(--clr-main), var(--clr-second), #fff);
+            background-size: 200% auto;
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 30px rgba(138, 43, 226, 0.4));
-            margin: 0; animation: title-float 4s ease-in-out infinite;
+            animation: shine 3s linear infinite;
+            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.4));
         }
 
-        @keyframes title-float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        @keyframes shine {
+            to { background-position: 200% center; }
         }
 
         .subtitle {
-            font-size: 18px; font-weight: 300; letter-spacing: 5px;
-            color: var(--accent); text-transform: uppercase; margin-top: 10px;
-            opacity: 0.8;
+            font-size: 14px; letter-spacing: 10px; text-transform: uppercase;
+            margin-top: -10px; opacity: 0.8; color: var(--clr-second);
+            animation: pulse 2s ease-in-out infinite;
         }
 
-        .pricing-section {
-            padding: 100px 20px; max-width: 1300px; margin: 0 auto;
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 15px var(--clr-second); }
         }
 
+        /* Карточки с неоновой обводкой */
+        .pricing { padding: 100px 20px; max-width: 1200px; margin: 0 auto; }
+        
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 30px; align-items: stretch;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
         }
 
-        .glass-card {
-            background: rgba(255, 255, 255, 0.03);
+        .card {
+            background: rgba(10, 5, 20, 0.7);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px; padding: 40px;
+            border-radius: 30px; padding: 50px 30px;
             backdrop-filter: blur(20px);
-            transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-            display: flex; flex-direction: column;
-            position: relative;
+            position: relative; transition: 0.5s;
+            overflow: hidden;
         }
 
-        .glass-card:hover {
-            background: rgba(138, 43, 226, 0.05);
-            border-color: var(--primary);
-            transform: translateY(-15px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(138, 43, 226, 0.2);
+        .card::before {
+            content: ""; position: absolute; top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transition: 0.5s;
         }
 
-        .card-tag {
-            position: absolute; top: 20px; right: 20px;
-            font-size: 10px; font-weight: 900; color: var(--accent);
-            border: 1px solid var(--accent); padding: 4px 10px; border-radius: 50px;
+        .card:hover::before { left: 100%; }
+
+        .card:hover {
+            transform: translateY(-20px) scale(1.02);
+            border-color: var(--clr-main);
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.3);
         }
 
-        .price-tag { font-size: 48px; font-weight: 900; margin: 20px 0; }
-        .currency { font-size: 20px; vertical-align: super; color: var(--accent); }
-        .secondary-price { color: #666; font-size: 16px; margin-bottom: 20px; }
-
-        .features { list-style: none; padding: 0; margin: 30px 0; flex-grow: 1; }
-        .features li { margin-bottom: 12px; font-size: 14px; opacity: 0.7; }
-        .features li::before { content: "✦"; color: var(--primary); margin-right: 10px; }
-
-        .buy-button {
-            background: white; color: black; text-decoration: none;
-            padding: 18px; border-radius: 15px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 1px;
-            transition: 0.3s; text-align: center;
+        /* Переливающаяся рамка для Lifetime */
+        .card.premium {
+            border: 1px solid transparent;
+            background-clip: padding-box;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.1);
         }
 
-        .buy-button:hover {
-            background: var(--primary); color: white;
-            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.4);
+        .card.premium::after {
+            content: ""; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--clr-main), var(--clr-second), var(--clr-main));
+            z-index: -1; border-radius: 32px;
+            animation: borderRotate 3s linear infinite;
+            background-size: 400% 400%;
         }
 
-        .lifetime-btn {
-            background: var(--primary); color: white;
+        @keyframes borderRotate {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        footer { padding: 50px; text-align: center; opacity: 0.3; font-size: 12px; }
+        .card h3 { font-size: 20px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
+        .price { font-size: 64px; font-weight: 900; margin: 0; }
+        .currency { font-size: 24px; color: var(--clr-main); }
+        .uah { color: #555; margin-bottom: 40px; font-size: 14px; }
+
+        .features { list-style: none; padding: 0; text-align: left; margin-bottom: 40px; }
+        .features li { margin-bottom: 15px; opacity: 0.8; font-size: 15px; display: flex; align-items: center; }
+        .features li::before { content: "✔"; margin-right: 15px; color: var(--clr-main); font-weight: bold; }
+
+        /* Кнопка с градиентом */
+        .btn {
+            display: block; width: 100%; padding: 20px;
+            background: linear-gradient(45deg, var(--clr-main), var(--clr-second));
+            border-radius: 15px; color: white; text-decoration: none;
+            font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
+            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            filter: brightness(1.2);
+            transform: scale(1.05);
+            box-shadow: 0 0 30px var(--clr-main);
+        }
+
+        footer { padding: 50px; text-align: center; opacity: 0.4; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div id="vanta-canvas"></div>
+    <div id="vanta-canvas"></div>
 
-<section class="hero">
-    <div class="subtitle">Experience the Wind</div>
-    <h1 class="logo-glow">WIND CLIENT</h1>
-    <div style="margin-top: 30px;">
-        <a href="#pricing" style="color: white; text-decoration: none; border-bottom: 1px solid var(--primary); padding-bottom: 5px;">Посмотреть тарифы</a>
-    </div>
-</section>
-
-<section class="pricing-section" id="pricing">
-    <div class="grid">
-        <div class="glass-card">
-            <h3>30 DAYS</h3>
-            <div class="price-tag">99<span class="currency">₽</span></div>
-            <div class="secondary-price">~50 гривен</div>
-            <ul class="features">
-                <li>Полный доступ к 1.21.4</li>
-                <li>Cloud Конфиги</li>
-                <li>Обходы всех Bypass</li>
-            </ul>
-            <a href="https://t.me/ТВОЙ_НИК" class="buy-button">Начать</a>
+    <section class="hero">
+        <div class="logo-box">
+            <h1 class="logo">WIND</h1>
+            <div class="subtitle">Next Generation</div>
         </div>
+        <a href="#buy" style="margin-top: 50px; color: white; text-decoration: none; opacity: 0.6;">SCROLL TO SHOP</a>
+    </section>
 
-        <div class="glass-card">
-            <div class="card-tag">ПОПУЛЯРНО</div>
-            <h3>ANNUAL</h3>
-            <div class="price-tag">199<span class="currency">₽</span></div>
-            <div class="secondary-price">~100 гривен</div>
-            <ul class="features">
-                <li>Доступ на целый год</li>
-                <li>Ранние Beta-тесты</li>
-                <li>Приоритетный саппорт</li>
-            </ul>
-            <a href="https://t.me/ТВОЙ_НИК" class="buy-button">Выбрать</a>
+    <section class="pricing" id="buy">
+        <div class="grid">
+            <div class="card">
+                <h3>Starter</h3>
+                <p class="price">99<span class="currency">₽</span></p>
+                <p class="uah">~ 50 гривен / 30 дней</p>
+                <ul class="features">
+                    <li>Все функции чита</li>
+                    <li>Авто-обновления</li>
+                    <li>Cloud Configs</li>
+                </ul>
+                <a href="https://t.me/TetrisWindClientBot" class="btn">Выбрать</a>
+            </div>
+
+            <div class="card premium">
+                <div style="position: absolute; top: 20px; right: 20px; font-size: 10px; background: var(--clr-main); padding: 5px 10px; border-radius: 5px; font-weight: 900;">BEST VALUE</div>
+                <h3>Lifetime</h3>
+                <p class="price">250<span class="currency">₽</span></p>
+                <p class="uah">125 гривен / Навсегда</p>
+                <ul class="features">
+                    <li>Доступ ко всем версиям</li>
+                    <li>Приоритетный саппорт</li>
+                    <li>Доступ к приватным бетам</li>
+                    <li>Роль в Discord / TG</li>
+                </ul>
+                <a href="https://t.me/TetrisWindClientBot" class="btn">Купить навсегда</a>
+            </div>
+
+            <div class="card">
+                <h3>Annual</h3>
+                <p class="price">199<span class="currency">₽</span></p>
+                <p class="uah">~ 100 гривен / 365 дней</p>
+                <ul class="features">
+                    <li>Доступ на 1 год</li>
+                    <li>Полный функционал</li>
+                    <li>Скидка на Wind 2.0</li>
+                </ul>
+                <a href="https://t.me/TetrisWindClientBot" class="btn">Выбрать</a>
+            </div>
         </div>
+    </section>
 
-        <div class="glass-card" style="border-color: rgba(138, 43, 226, 0.5);">
-            <div class="card-tag" style="background: var(--primary); color: white; border: none;">ЛУЧШАЯ ЦЕНА</div>
-            <h3>LIFETIME</h3>
-            <div class="price-tag">250<span class="currency">₽</span></div>
-            <div class="secondary-price">125 гривен</div>
-            <ul class="features">
-                <li>Навсегда в Wind Client</li>
-                <li>Доступ ко всем версиям</li>
-                <li>Уникальный HWID-ключ</li>
-                <li>Роль в сообществе</li>
-            </ul>
-            <a href="https://t.me/ТВОЙ_НИК" class="buy-button lifetime-btn">Купить навсегда</a>
-        </div>
-    </div>
-</section>
+    <footer>
+        DESIGNED BY WINDCLIENTFUN &copy; 2026
+    </footer>
 
-<footer>
-    Designed for WindClientFun &copy; 2026. All rights reserved.
-</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
-<script>
-    VANTA.FOG({
-        el: "#vanta-canvas",
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        highlightColor: 0x4a00e0,
-        midtoneColor: 0x8e2de2,
-        lowlightColor: 0x0a0a1a,
-        baseColor: 0x030005,
-        blurFactor: 0.70,
-        speed: 1.8,
-        zoom: 1.0
-    })
-</script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
+    <script>
+        VANTA.FOG({
+            el: "#vanta-canvas",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            highlightColor: 0x8a2be2,
+            midtoneColor: 0x3b82f6,
+            lowlightColor: 0x030005,
+            baseColor: 0x030005,
+            speed: 2.5,
+            zoom: 1.5
+        })
+    </script>
 </body>
 </html>
