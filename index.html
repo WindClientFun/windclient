@@ -2,219 +2,90 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wind Client | Premium</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>WIND CLIENT | Cloud Sync</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --clr-main: #a855f7;
-            --clr-second: #3b82f6;
-            --clr-bg: #030005;
-        }
-
-        body, html {
-            margin: 0; padding: 0; min-height: 100vh;
+        body {
+            background: #030306;
+            color: white;
             font-family: 'Montserrat', sans-serif;
-            color: white; background: var(--clr-bg);
-            overflow-x: hidden; scroll-behavior: smooth;
-        }
-
-        /* Анимированный фон */
-        #vanta-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; filter: brightness(0.5);
-        }
-
-        /* Эффект свечения заголовка */
-        .hero {
-            height: 100vh; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; text-align: center;
-        }
-
-        .logo-box { position: relative; }
-        
-        .logo {
-            font-size: clamp(60px, 15vw, 150px);
-            font-weight: 900; letter-spacing: -5px; margin: 0;
-            background: linear-gradient(to right, #fff, var(--clr-main), var(--clr-second), #fff);
-            background-size: 200% auto;
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            animation: shine 3s linear infinite;
-            filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.4));
-        }
-
-        @keyframes shine {
-            to { background-position: 200% center; }
-        }
-
-        .subtitle {
-            font-size: 14px; letter-spacing: 10px; text-transform: uppercase;
-            margin-top: -10px; opacity: 0.8; color: var(--clr-second);
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; text-shadow: 0 0 15px var(--clr-second); }
-        }
-
-        /* Карточки с неоновой обводкой */
-        .pricing { padding: 100px 20px; max-width: 1200px; margin: 0 auto; }
-        
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 40px;
-        }
-
-        .card {
-            background: rgba(10, 5, 20, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px; padding: 50px 30px;
-            backdrop-filter: blur(20px);
-            position: relative; transition: 0.5s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
             overflow: hidden;
         }
-
-        .card::before {
-            content: ""; position: absolute; top: 0; left: -100%;
-            width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            transition: 0.5s;
+        .container {
+            background: #090812;
+            padding: 40px;
+            border-radius: 30px;
+            border: 2px solid #c084fc;
+            box-shadow: 0 0 30px rgba(192, 132, 252, 0.2);
+            text-align: center;
+            width: 350px;
         }
-
-        .card:hover::before { left: 100%; }
-
-        .card:hover {
-            transform: translateY(-20px) scale(1.02);
-            border-color: var(--clr-main);
-            box-shadow: 0 0 50px rgba(168, 85, 247, 0.3);
+        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; margin-bottom: 30px; }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #0d0d1a;
+            border: 1px solid #2e2a5e;
+            border-radius: 10px;
+            color: white;
+            box-sizing: border-box;
         }
-
-        /* Переливающаяся рамка для Lifetime */
-        .card.premium {
-            border: 1px solid transparent;
-            background-clip: padding-box;
-            box-shadow: 0 0 30px rgba(168, 85, 247, 0.1);
-        }
-
-        .card.premium::after {
-            content: ""; position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px;
-            background: linear-gradient(45deg, var(--clr-main), var(--clr-second), var(--clr-main));
-            z-index: -1; border-radius: 32px;
-            animation: borderRotate 3s linear infinite;
-            background-size: 400% 400%;
-        }
-
-        @keyframes borderRotate {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .card h3 { font-size: 20px; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 30px; }
-        .price { font-size: 64px; font-weight: 900; margin: 0; }
-        .currency { font-size: 24px; color: var(--clr-main); }
-        .uah { color: #555; margin-bottom: 40px; font-size: 14px; }
-
-        .features { list-style: none; padding: 0; text-align: left; margin-bottom: 40px; }
-        .features li { margin-bottom: 15px; opacity: 0.8; font-size: 15px; display: flex; align-items: center; }
-        .features li::before { content: "✔"; margin-right: 15px; color: var(--clr-main); font-weight: bold; }
-
-        /* Кнопка с градиентом */
-        .btn {
-            display: block; width: 100%; padding: 20px;
-            background: linear-gradient(45deg, var(--clr-main), var(--clr-second));
-            border-radius: 15px; color: white; text-decoration: none;
-            font-weight: 900; text-transform: uppercase; letter-spacing: 2px;
-            box-shadow: 0 10px 20px rgba(168, 85, 247, 0.3);
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            background: #c084fc;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
             transition: 0.3s;
         }
-
-        .btn:hover {
-            filter: brightness(1.2);
-            transform: scale(1.05);
-            box-shadow: 0 0 30px var(--clr-main);
-        }
-
-        footer { padding: 50px; text-align: center; opacity: 0.4; font-size: 12px; }
+        button:hover { background: #a855f7; transform: scale(1.02); }
+        .switch { margin-top: 15px; font-size: 12px; color: #888; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div id="vanta-canvas"></div>
+<div class="container" id="auth-box">
+    <h1 id="title">WIND REG</h1>
+    <input type="text" id="username" placeholder="Никнейм">
+    <input type="password" id="password" placeholder="Пароль">
+    <button onclick="handleAuth()" id="main-btn">СОЗДАТЬ АККАУНТ</button>
+    <div class="switch" onclick="toggleMode()" id="toggle-text">Уже есть аккаунт? Войти</div>
+    <p id="status" style="font-size: 12px; margin-top: 15px;"></p>
+</div>
 
-    <section class="hero">
-        <div class="logo-box">
-            <h1 class="logo">WIND</h1>
-            <div class="subtitle">Next Generation</div>
-        </div>
-        <a href="#buy" style="margin-top: 50px; color: white; text-decoration: none; opacity: 0.6;">SCROLL TO SHOP</a>
-    </section>
+<script>
+    let isLogin = false;
 
-    <section class="pricing" id="buy">
-        <div class="grid">
-            <div class="card">
-                <h3>Starter</h3>
-                <p class="price">99<span class="currency">₽</span></p>
-                <p class="uah">~ 50 гривен / 30 дней</p>
-                <ul class="features">
-                    <li>Все функции чита</li>
-                    <li>Авто-обновления</li>
-                    <li>Cloud Configs</li>
-                </ul>
-                <a href="https://t.me/TetrisWindClientBot" class="btn">Выбрать</a>
-            </div>
+    function toggleMode() {
+        isLogin = !isLogin;
+        document.getElementById('title').innerText = isLogin ? 'WIND LOGIN' : 'WIND REG';
+        document.getElementById('main-btn').innerText = isLogin ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
+        document.getElementById('toggle-text').innerText = isLogin ? 'Нет аккаунта? Регистрация' : 'Уже есть аккаунт? Войти';
+    }
 
-            <div class="card premium">
-                <div style="position: absolute; top: 20px; right: 20px; font-size: 10px; background: var(--clr-main); padding: 5px 10px; border-radius: 5px; font-weight: 900;">BEST VALUE</div>
-                <h3>Lifetime</h3>
-                <p class="price">250<span class="currency">₽</span></p>
-                <p class="uah">125 гривен / Навсегда</p>
-                <ul class="features">
-                    <li>Доступ ко всем версиям</li>
-                    <li>Приоритетный саппорт</li>
-                    <li>Доступ к приватным бетам</li>
-                    <li>Роль в Discord / TG</li>
-                </ul>
-                <a href="https://t.me/TetrisWindClientBot" class="btn">Купить навсегда</a>
-            </div>
+    async function handleAuth() {
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+        const status = document.getElementById('status');
 
-            <div class="card">
-                <h3>Annual</h3>
-                <p class="price">199<span class="currency">₽</span></p>
-                <p class="uah">~ 100 гривен / 365 дней</p>
-                <ul class="features">
-                    <li>Доступ на 1 год</li>
-                    <li>Полный функционал</li>
-                    <li>Скидка на Wind 2.0</li>
-                </ul>
-                <a href="https://t.me/TetrisWindClientBot" class="btn">Выбрать</a>
-            </div>
-        </div>
-    </section>
+        if(user.length < 3) return status.innerText = "Ник слишком короткий";
 
-    <footer>
-        DESIGNED BY WINDCLIENTFUN &copy; 2026
-    </footer>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
-    <script>
-        VANTA.FOG({
-            el: "#vanta-canvas",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            highlightColor: 0x8a2be2,
-            midtoneColor: 0x3b82f6,
-            lowlightColor: 0x030005,
-            baseColor: 0x030005,
-            speed: 2.5,
-            zoom: 1.5
-        })
-    </script>
+        // ТУТ БУДЕТ ЛОГИКА ОТПРАВКИ В FIREBASE
+        status.style.color = "#4ade80";
+        status.innerText = "Обработка... (Подключите Firebase)";
+        
+        // В будущем здесь будет сохранение в базу данных:
+        // UUID будет браться как current_users_count + 1
+    }
+</script>
 </body>
 </html>
