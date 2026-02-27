@@ -3,40 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wind Client | Evolution</title>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <title>Wind Client | The Next Generation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;600;900&display=swap" rel="stylesheet">
     <style>
-        :root { --main-clr: #8A2BE2; --accent-clr: #a855f7; }
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Montserrat', sans-serif; color: white; background: #050011; overflow-x: hidden; }
-        #vanta-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
-        
-        .container { max-width: 1200px; margin: 0 auto; text-align: center; padding: 80px 20px; }
-        
-        .logo-area h1 { font-size: 85px; font-weight: 900; margin: 0; letter-spacing: -2px; background: linear-gradient(to bottom, #fff, var(--main-clr)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(0 0 15px rgba(138, 43, 226, 0.5)); }
-        .version-badge { background: rgba(138, 43, 226, 0.2); border: 1px solid var(--main-clr); padding: 5px 15px; border-radius: 50px; font-size: 14px; text-transform: uppercase; }
+        :root {
+            --primary: #8A2BE2;
+            --secondary: #4b0082;
+            --accent: #d8b4fe;
+            --bg: #030005;
+        }
 
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-top: 60px; }
-        
-        .card { background: rgba(10, 5, 20, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); padding: 40px 20px; border-radius: 25px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; overflow: hidden; }
-        .card:hover { transform: scale(1.05); border-color: var(--main-clr); box-shadow: 0 0 40px rgba(138, 43, 226, 0.3); }
-        .card.popular { border: 2px solid var(--main-clr); scale: 1.1; z-index: 2; }
-        .card.popular::before { content: "РЕКОМЕНДУЕМ"; position: absolute; top: 15px; right: -30px; background: var(--main-clr); font-size: 10px; padding: 5px 40px; transform: rotate(45deg); font-weight: bold; }
+        body, html {
+            margin: 0; padding: 0; min-height: 100vh;
+            font-family: 'Montserrat', sans-serif;
+            color: white; background: var(--bg);
+            overflow-x: hidden; scroll-behavior: smooth;
+        }
 
-        .card h3 { font-size: 22px; margin-bottom: 5px; color: #ddd; }
-        .card .price-rub { font-size: 42px; font-weight: 900; margin: 10px 0; color: #fff; }
-        .card .price-uah { font-size: 18px; color: #aaa; margin-bottom: 20px; }
+        #vanta-canvas {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; filter: brightness(0.6);
+        }
 
-        .btn { display: block; background: var(--main-clr); color: white; text-decoration: none; padding: 15px; border-radius: 12px; font-weight: bold; transition: 0.3s; box-shadow: 0 4px 15px rgba(138, 43, 226, 0.4); }
-        .btn:hover { background: var(--accent-clr); box-shadow: 0 0 25px var(--main-clr); }
+        .hero {
+            height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; text-align: center;
+        }
 
-        .features-list { text-align: left; font-size: 13px; color: #bbb; margin: 20px 0; list-style: none; padding: 0; }
-        .features-list li::before { content: "✓ "; color: var(--main-clr); }
+        .logo-glow {
+            font-size: clamp(50px, 10vw, 110px);
+            font-weight: 900; letter-spacing: -3px;
+            background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 30px rgba(138, 43, 226, 0.4));
+            margin: 0; animation: title-float 4s ease-in-out infinite;
+        }
+
+        @keyframes title-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .subtitle {
+            font-size: 18px; font-weight: 300; letter-spacing: 5px;
+            color: var(--accent); text-transform: uppercase; margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        .pricing-section {
+            padding: 100px 20px; max-width: 1300px; margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px; align-items: stretch;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px; padding: 40px;
+            backdrop-filter: blur(20px);
+            transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            display: flex; flex-direction: column;
+            position: relative;
+        }
+
+        .glass-card:hover {
+            background: rgba(138, 43, 226, 0.05);
+            border-color: var(--primary);
+            transform: translateY(-15px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 20px rgba(138, 43, 226, 0.2);
+        }
+
+        .card-tag {
+            position: absolute; top: 20px; right: 20px;
+            font-size: 10px; font-weight: 900; color: var(--accent);
+            border: 1px solid var(--accent); padding: 4px 10px; border-radius: 50px;
+        }
+
+        .price-tag { font-size: 48px; font-weight: 900; margin: 20px 0; }
+        .currency { font-size: 20px; vertical-align: super; color: var(--accent); }
+        .secondary-price { color: #666; font-size: 16px; margin-bottom: 20px; }
+
+        .features { list-style: none; padding: 0; margin: 30px 0; flex-grow: 1; }
+        .features li { margin-bottom: 12px; font-size: 14px; opacity: 0.7; }
+        .features li::before { content: "✦"; color: var(--primary); margin-right: 10px; }
+
+        .buy-button {
+            background: white; color: black; text-decoration: none;
+            padding: 18px; border-radius: 15px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1px;
+            transition: 0.3s; text-align: center;
+        }
+
+        .buy-button:hover {
+            background: var(--primary); color: white;
+            box-shadow: 0 10px 20px rgba(138, 43, 226, 0.4);
+        }
+
+        .lifetime-btn {
+            background: var(--primary); color: white;
+        }
+
+        footer { padding: 50px; text-align: center; opacity: 0.3; font-size: 12px; }
     </style>
 </head>
 <body>
-    <div id="vanta-canvas"></div>
 
-    <div class="container">
-        <div class="logo-area">
-            <span class="version-badge">Minecraft 1.21.4 Fabric</span>
-            <h1>WIND CLIENT</h1>
+<div id="vanta-canvas"></div>
+
+<section class="hero">
+    <div class="subtitle">Experience the Wind</div>
+    <h1 class="logo-glow">WIND CLIENT</h1>
+    <div style="margin-top: 30px;">
+        <a href="#pricing" style="color: white; text-decoration: none; border-bottom: 1px solid var(--primary); padding-bottom: 5px;">Посмотреть тарифы</a>
+    </div>
+</section>
+
+<section class="pricing-section" id="pricing">
+    <div class="grid">
+        <div class="glass-card">
+            <h3>30 DAYS</h3>
+            <div class="price-tag">99<span class="currency">₽</span></div>
+            <div class="secondary-price">~50 гривен</div>
+            <ul class="features">
+                <li>Полный доступ к 1.21.4</li>
+                <li>Cloud Конфиги</li>
+                <li>Обходы всех Bypass</li>
+            </ul>
+            <a href="https://t.me/ТВОЙ_НИК" class="buy-button">Начать</a>
+        </div>
+
+        <div class="glass-card">
+            <div class="card-tag">ПОПУЛЯРНО</div>
+            <h3>ANNUAL</h3>
+            <div class="price-tag">199<span class="currency">₽</span></div>
+            <div class="secondary-price">~100 гривен</div>
+            <ul class="features">
+                <li>Доступ на целый год</li>
+                <li>Ранние Beta-тесты</li>
+                <li>Приоритетный саппорт</li>
+            </ul>
+            <a href="https://t.me/ТВОЙ_НИК" class="buy-button">Выбрать</a>
+        </div>
+
+        <div class="glass-card" style="border-color: rgba(138, 43, 226, 0.5);">
+            <div class="card-tag" style="background: var(--primary); color: white; border: none;">ЛУЧШАЯ ЦЕНА</div>
+            <h3>LIFETIME</h3>
+            <div class="price-tag">250<span class="currency">₽</span></div>
+            <div class="secondary-price">125 гривен</div>
+            <ul class="features">
+                <li>Навсегда в Wind Client</li>
+                <li>Доступ ко всем версиям</li>
+                <li>Уникальный HWID-ключ</li>
+                <li>Роль в сообществе</li>
+            </ul>
+            <a href="https://t.me/ТВОЙ_НИК" class="buy-button lifetime-btn">Купить навсегда</a>
+        </div>
+    </div>
+</section>
+
+<footer>
+    Designed for WindClientFun &copy; 2026. All rights reserved.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.fog.min.js"></script>
+<script>
+    VANTA.FOG({
+        el: "#vanta-canvas",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        highlightColor: 0x4a00e0,
+        midtoneColor: 0x8e2de2,
+        lowlightColor: 0x0a0a1a,
+        baseColor: 0x030005,
+        blurFactor: 0.70,
+        speed: 1.8,
+        zoom: 1.0
+    })
+</script>
+
+</body>
+</html>
