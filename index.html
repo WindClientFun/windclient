@@ -2,128 +2,282 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND CLIENT | Cloud</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIND CLIENT | Premium Cloud</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
     <style>
-        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 400px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); }
-        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; font-size: 24px; margin-bottom: 20px; }
-        
-        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
-        .tab-btn { flex: 1; padding: 10px; background: #0d0d1a; border: 1px solid #2e2a5e; color: white; cursor: pointer; border-radius: 10px; transition: 0.3s; }
-        .tab-btn.active { background: #c084fc; color: black; font-weight: bold; }
+        :root {
+            --accent: #c084fc;
+            --bg: #050508;
+            --card-bg: rgba(13, 12, 26, 0.85);
+            --border: rgba(192, 132, 252, 0.3);
+        }
 
-        input { width: 100%; padding: 12px; margin: 8px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; }
-        button.action-btn { width: 100%; padding: 15px; margin-top: 15px; background: #c084fc; border: none; border-radius: 12px; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        button.action-btn:hover { background: #FFFFFF; transform: scale(1.02); }
+        body {
+            background: var(--bg);
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(192, 132, 252, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.05) 0%, transparent 40%);
+            color: white;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            padding: 50px 40px;
+            border-radius: 40px;
+            border: 1px solid var(--border);
+            text-align: center;
+            width: 420px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -2px; left: -2px; right: -2px; bottom: -2px;
+            background: linear-gradient(45deg, var(--accent), transparent, var(--accent));
+            border-radius: 40px;
+            z-index: -1;
+            opacity: 0.2;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            background: linear-gradient(to bottom, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 32px;
+            margin-bottom: 30px;
+            letter-spacing: 4px;
+        }
+
+        /* Табы */
+        .tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 20px;
+            padding: 6px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            cursor: pointer;
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-weight: 600;
+            font-size: 13px;
+            color: #666;
+            border: none;
+            background: none;
+            letter-spacing: 1px;
+        }
+
+        .tab.active {
+            background: var(--accent);
+            color: #000;
+            box-shadow: 0 10px 20px rgba(192, 132, 252, 0.3);
+        }
+
+        /* Поля ввода */
+        .input-group {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 18px;
+            color: white;
+            box-sizing: border-box;
+            outline: none;
+            font-family: 'Montserrat';
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(192, 132, 252, 0.03);
+            box-shadow: 0 0 0 4px rgba(192, 132, 252, 0.1);
+        }
+
+        /* Кнопки */
+        .main-btn {
+            width: 100%;
+            padding: 18px;
+            margin-top: 20px;
+            background: var(--accent);
+            border: none;
+            border-radius: 20px;
+            color: #000;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-family: 'Orbitron';
+        }
+
+        .main-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(192, 132, 252, 0.4);
+            filter: brightness(1.1);
+        }
 
         .hidden { display: none; }
-        .user-info { background: #16162e; padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 4px solid #c084fc; text-align: left; }
-        .status-msg { font-size: 13px; margin-top: 10px; color: #ef4444; min-height: 20px; }
-        .btn-dl { background: #4ade80 !important; }
+        
+        .status {
+            font-size: 12px;
+            margin-top: 20px;
+            color: var(--accent);
+            opacity: 0.8;
+            font-weight: 600;
+        }
+
+        /* Dashboard Стили */
+        .user-card {
+            background: linear-gradient(135deg, rgba(192, 132, 252, 0.1), transparent);
+            padding: 25px;
+            border-radius: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(192, 132, 252, 0.2);
+        }
+
+        .dl-btn {
+            background: #fff !important;
+            color: #000 !important;
+            margin-bottom: 12px;
+        }
+
+        .buy-btn {
+            background: transparent !important;
+            border: 2px solid var(--accent) !important;
+            color: var(--accent) !important;
+        }
+
+        .buy-btn:hover {
+            background: var(--accent) !important;
+            color: #000 !important;
+        }
     </style>
 </head>
 <body>
 
-<div id="authContainer" class="card">
-    <h1 id="mainTitle">WIND CLOUD</h1>
+<div id="authBox" class="card">
+    <h1>WIND CLOUD</h1>
     
-    <div id="tabBar" class="tabs">
-        <button id="loginTab" class="tab-btn active" onclick="switchMode('login')">ВХОД</button>
-        <button id="regTab" class="tab-btn" onclick="switchMode('reg')">РЕГИСТРАЦИЯ</button>
+    <div class="tabs">
+        <button id="t-login" class="tab active" onclick="setMode('login')">LOGIN</button>
+        <button id="t-reg" class="tab" onclick="setMode('reg')">REGISTER</button>
     </div>
 
-    <input type="text" id="userField" placeholder="Никнейм">
-    <input type="password" id="passField" placeholder="Пароль">
+    <div class="input-group">
+        <input type="text" id="user" placeholder="Username">
+    </div>
+    <div class="input-group">
+        <input type="password" id="pass" placeholder="Password">
+    </div>
     
-    <button id="submitBtn" class="action-btn" onclick="processAuth()">ВОЙТИ</button>
-    <div id="statusMsg" class="status-msg"></div>
+    <button id="actionBtn" class="main-btn" onclick="startAuth()">AUTHORIZE</button>
+    <div id="status" class="status">SYSTEM READY</div>
 </div>
 
-<div id="dashboard" class="card hidden">
-    <h1>WIND DASHBOARD</h1>
-    <div class="user-info">
-        <div id="resUser" style="font-weight: bold; font-size: 18px; color: white;">USER: -</div>
-        <div id="resUUID" style="color: #c084fc;">UUID: #0</div>
+<div id="dashBox" class="card hidden">
+    <h1>DASHBOARD</h1>
+    <div class="user-card">
+        <div id="u-name" style="font-size: 22px; font-weight: 600; margin-bottom: 8px;">USER: -</div>
+        <div id="u-uuid" style="color: var(--accent); font-family: 'Orbitron'; font-size: 14px;">UUID: #000</div>
     </div>
     
-    <button class="action-btn btn-dl" onclick="window.location.href='ТВОЯ_ССЫЛКА_НА_ЛАУНЧЕР'">
-        📥 СКАЧАТЬ ЛАУНЧЕР
+    <button class="main-btn dl-btn" onclick="window.location.href='ТВОЯ_ССЫЛКА_ТУТ'">
+        DOWNLOAD CLIENT
     </button>
     
-    <button class="action-btn" style="background: #fbbf24;" onclick="window.open('https://t.me/TetrisWindClientbot')">
-        ⭐ КУПИТЬ VIP
+    <button class="main-btn buy-btn" onclick="window.open('https://t.me/TetrisWindClientbot', '_blank')">
+        PURCHASE VIP
     </button>
     
-    <button class="action-btn" style="background: #333; color: white; margin-top: 10px;" onclick="location.reload()">ВЫЙТИ</button>
+    <p onclick="location.reload()" style="cursor:pointer; font-size: 11px; margin-top: 25px; opacity: 0.4; letter-spacing: 2px;">LOGOUT SYSTEM</p>
 </div>
 
 <script>
-    const firebaseConfig = {
+    const config = {
         apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
         databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
         projectId: "windclient111",
     };
 
-    firebase.initializeApp(firebaseConfig);
+    firebase.initializeApp(config);
     const db = firebase.database();
+    let mode = 'login';
 
-    let currentMode = 'login';
-
-    function switchMode(mode) {
-        currentMode = mode;
-        document.getElementById('loginTab').classList.toggle('active', mode === 'login');
-        document.getElementById('regTab').classList.toggle('active', mode === 'reg');
-        document.getElementById('submitBtn').innerText = mode === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
-        document.getElementById('statusMsg').innerText = '';
+    function setMode(m) {
+        mode = m;
+        document.getElementById('t-login').classList.toggle('active', m === 'login');
+        document.getElementById('t-reg').classList.toggle('active', m === 'reg');
+        document.getElementById('actionBtn').innerText = m === 'login' ? 'AUTHORIZE' : 'CREATE ACCOUNT';
+        document.getElementById('status').innerText = 'SYSTEM READY';
     }
 
-    async function processAuth() {
-        const user = document.getElementById('userField').value.trim();
-        const pass = document.getElementById('passField').value.trim();
-        const status = document.getElementById('statusMsg');
+    async function startAuth() {
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+        const s = document.getElementById('status');
 
-        if (!user || !pass) { status.innerText = "❌ Заполни поля!"; return; }
-
-        status.innerText = "⏳ Загрузка...";
-        status.style.color = "#c084fc";
+        if(!u || !p) { s.innerText = 'FILL ALL FIELDS'; return; }
+        s.innerText = 'CONNECTING TO CLOUD...';
 
         try {
-            const userRef = db.ref('users/' + user);
-            const snapshot = await userRef.once('value');
+            const ref = db.ref('users/' + u);
+            const snap = await ref.once('value');
 
-            if (currentMode === 'reg') {
-                // ЛОГИКА РЕГИСТРАЦИИ
-                if (snapshot.exists()) {
-                    status.innerText = "❌ Ник уже занят!";
-                } else {
-                    const countSnap = await db.ref('users_count').once('value');
-                    let newUUID = (countSnap.val() || 0) + 1;
-                    await userRef.set({ password: pass, uuid: newUUID });
-                    await db.ref('users_count').set(newUUID);
-                    showDash(user, newUUID);
+            if (mode === 'reg') {
+                if (snap.exists()) { s.innerText = 'USERNAME TAKEN'; }
+                else {
+                    const cSnap = await db.ref('users_count').once('value');
+                    let nextID = (cSnap.val() || 0) + 1;
+                    await ref.set({ password: p, uuid: nextID });
+                    await db.ref('users_count').set(nextID);
+                    goDash(u, nextID);
                 }
             } else {
-                // ЛОГИКА ВХОДА
-                if (snapshot.exists() && snapshot.val().password === pass) {
-                    showDash(user, snapshot.val().uuid);
+                if (snap.exists() && snap.val().password === p) {
+                    goDash(u, snap.val().uuid);
                 } else {
-                    status.innerText = "❌ Неверный ник или пароль!";
-                    status.style.color = "#ef4444";
+                    s.innerText = 'ACCESS DENIED';
                 }
             }
-        } catch (e) {
-            status.innerText = "❌ Ошибка базы!";
-        }
+        } catch(e) { s.innerText = 'DATABASE ERROR'; }
     }
 
-    function showDash(user, uuid) {
-        document.getElementById('authContainer').classList.add('hidden');
-        document.getElementById('dashboard').classList.remove('hidden');
-        document.getElementById('resUser').innerText = "USER: " + user.toUpperCase();
-        document.getElementById('resUUID').innerText = "UUID: #" + uuid;
+    function goDash(name, id) {
+        document.getElementById('authBox').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('authBox').classList.add('hidden');
+            document.getElementById('dashBox').classList.remove('hidden');
+            document.getElementById('u-name').innerText = name.toUpperCase();
+            document.getElementById('u-uuid').innerText = "UUID: #" + id;
+        }, 300);
     }
 </script>
 </body>
