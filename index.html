@@ -2,98 +2,98 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND CLIENT | Registration</title>
+    <title>WIND CLIENT | Cloud Account</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); }
+        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 400px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); transition: 0.5s; }
         h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; font-size: 24px; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; margin: 10px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; font-family: 'Montserrat'; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; }
         button { width: 100%; padding: 15px; margin-top: 15px; background: #c084fc; border: none; border-radius: 12px; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
         button:hover { background: #FFFFFF; transform: scale(1.02); }
-        #status { font-size: 14px; margin-top: 20px; color: #FFFFFF; font-weight: bold; min-height: 40px; }
+        .hidden { display: none; }
+        
+        /* Стили для Главной страницы (после регистрации) */
+        .user-info { background: #16162e; padding: 15px; border-radius: 15px; margin-bottom: 20px; border-left: 4px solid #c084fc; text-align: left; }
+        .btn-download { background: #4ade80; color: black; margin-bottom: 10px; }
+        .btn-buy { background: #fbbf24; color: black; }
+        .status-msg { font-size: 13px; margin-top: 10px; color: #ef4444; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h1>WIND CLOUD</h1>
-    <input type="text" id="user" placeholder="Никнейм">
-    <input type="password" id="pass" placeholder="Пароль">
-    <button id="regBtn" onclick="register()">СОЗДАТЬ АККАУНТ</button>
-    <div id="status">Готов к регистрации</div>
+<div id="regScreen" class="card">
+    <h1>WIND REGISTRATION</h1>
+    <input type="text" id="user" placeholder="Придумайте ник">
+    <input type="password" id="pass" placeholder="Придумайте пароль">
+    <button onclick="register()">СОЗДАТЬ АККАУНТ</button>
+    <div id="status" class="status-msg" style="color: #888;">Введите данные для доступа</div>
+</div>
+
+<div id="mainScreen" class="card hidden">
+    <h1>WIND DASHBOARD</h1>
+    <div class="user-info">
+        <div id="displayUser" style="font-weight: bold; font-size: 18px;">USER: -</div>
+        <div id="displayUUID" style="color: #c084fc;">UUID: #0</div>
+    </div>
+    
+    <p style="font-size: 14px; color: #aaa;">Добро пожаловать в Wind Client Cloud!</p>
+    
+    <button class="btn-download" onclick="window.location.href='https://github.com/WindClientFun/windclient/raw/main/launcher.exe'">
+        📥 СКАЧАТЬ ЛАУНЧЕР (.EXE)
+    </button>
+    
+    <button class="btn-buy" onclick="window.open('https://t.me/TetrisWindClientbot', '_blank')">
+        ⭐ КУПИТЬ VIP / ПОДПИСКУ
+    </button>
+    
+    <p style="font-size: 11px; margin-top: 15px; color: #555;">После скачивания используйте свои данные для входа.</p>
 </div>
 
 <script>
-    // Твои конфиги
     const firebaseConfig = {
         apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
         databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
         projectId: "windclient111",
     };
 
-    // Инициализация с проверкой
-    try {
-        firebase.initializeApp(firebaseConfig);
-        console.log("Firebase подключен успешно!");
-    } catch (e) {
-        console.error("Ошибка инициализации Firebase:", e);
-        document.getElementById('status').innerText = "❌ Ошибка подключения БД";
-    }
-
+    firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     async function register() {
         const user = document.getElementById('user').value.trim();
         const pass = document.getElementById('pass').value.trim();
         const status = document.getElementById('status');
-        const btn = document.getElementById('regBtn');
 
-        if (!user || !pass) { 
-            status.innerText = "❌ Заполни все поля!"; 
-            status.style.color = "#ef4444";
-            return; 
-        }
+        if (!user || !pass) { status.innerText = "❌ Заполните поля!"; return; }
 
         status.innerText = "⏳ Обработка...";
-        status.style.color = "#c084fc";
-        btn.disabled = true;
-
+        
         try {
-            console.log("Проверяем пользователя:", user);
-            const snapshot = await db.ref('users/' + user).once('value');
+            const userRef = db.ref('users/' + user);
+            const snapshot = await userRef.once('value');
 
             if (snapshot.exists()) {
                 status.innerText = "❌ Этот ник уже занят!";
-                status.style.color = "#ef4444";
-                btn.disabled = false;
             } else {
-                console.log("Ник свободен, получаем UUID...");
-                // Получаем UUID
                 const countRef = db.ref('users_count');
                 const countSnap = await countRef.once('value');
                 let newUUID = (countSnap.val() || 0) + 1;
 
-                console.log("Присваиваем UUID:", newUUID);
-                // Сохраняем юзера
-                await db.ref('users/' + user).set({
-                    password: pass,
-                    uuid: newUUID
-                });
-                // Обновляем счетчик
+                await userRef.set({ password: pass, uuid: newUUID });
                 await countRef.set(newUUID);
 
-                status.innerHTML = `<span style="color:#4ade80">✅ Успех! UUID: #${newUUID}</span><br>Теперь заходи в лаунчер!`;
-                btn.style.display = "none";
+                // ПЕРЕКЛЮЧЕНИЕ ЭКРАНОВ
+                document.getElementById('displayUser').innerText = "USER: " + user.toUpperCase();
+                document.getElementById('displayUUID').innerText = "UUID: #" + newUUID;
+                
+                document.getElementById('regScreen').classList.add('hidden');
+                document.getElementById('mainScreen').classList.remove('hidden');
             }
-        } catch (error) {
-            console.error("Ошибка при регистрации:", error);
-            status.innerText = "❌ Ошибка базы (Проверь Rules!)";
-            status.style.color = "#ef4444";
-            btn.disabled = false;
+        } catch (e) {
+            status.innerText = "❌ Ошибка базы. Проверьте Rules!";
         }
     }
 </script>
