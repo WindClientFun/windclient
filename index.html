@@ -2,89 +2,68 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND CLIENT | Cloud Sync</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Montserrat:wght@300;600&display=swap" rel="stylesheet">
+    <title>WIND CLIENT | Регистрация</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: #030306;
-            color: white;
-            font-family: 'Montserrat', sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-        }
-        .container {
-            background: #090812;
-            padding: 40px;
-            border-radius: 30px;
-            border: 2px solid #c084fc;
-            box-shadow: 0 0 30px rgba(192, 132, 252, 0.2);
-            text-align: center;
-            width: 350px;
-        }
-        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; margin-bottom: 30px; }
-        input {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: #0d0d1a;
-            border: 1px solid #2e2a5e;
-            border-radius: 10px;
-            color: white;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 15px;
-            margin-top: 20px;
-            background: #c084fc;
-            border: none;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        button:hover { background: #a855f7; transform: scale(1.02); }
-        .switch { margin-top: 15px; font-size: 12px; color: #888; cursor: pointer; }
+        body { background: #030306; color: white; font-family: 'Montserrat', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .card { background: #090812; padding: 40px; border-radius: 30px; border: 2px solid #c084fc; text-align: center; width: 350px; box-shadow: 0 0 30px rgba(192, 132, 252, 0.2); }
+        h1 { font-family: 'Orbitron', sans-serif; color: #c084fc; font-size: 24px; margin-bottom: 25px; }
+        input { width: 100%; padding: 12px; margin: 10px 0; background: #0d0d1a; border: 1px solid #2e2a5e; border-radius: 10px; color: white; box-sizing: border-box; outline: none; }
+        input:focus { border-color: #c084fc; }
+        button { width: 100%; padding: 15px; margin-top: 15px; background: #c084fc; border: none; border-radius: 12px; color: black; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        button:hover { background: #FFFFFF; transform: scale(1.02); }
+        #status { font-size: 14px; margin-top: 20px; color: #FFFFFF; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container" id="auth-box">
-    <h1 id="title">WIND REG</h1>
-    <input type="text" id="username" placeholder="Никнейм">
-    <input type="password" id="password" placeholder="Пароль">
-    <button onclick="handleAuth()" id="main-btn">СОЗДАТЬ АККАУНТ</button>
-    <div class="switch" onclick="toggleMode()" id="toggle-text">Уже есть аккаунт? Войти</div>
-    <p id="status" style="font-size: 12px; margin-top: 15px;"></p>
+<div class="card">
+    <h1>WIND CLOUD</h1>
+    <input type="text" id="user" placeholder="Никнейм">
+    <input type="password" id="pass" placeholder="Пароль">
+    <button onclick="register()">СОЗДАТЬ АККАУНТ</button>
+    <div id="status">Введите данные</div>
 </div>
 
 <script>
-    let isLogin = false;
+    const firebaseConfig = {
+        apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
+        databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
+        projectId: "windclient111",
+    };
 
-    function toggleMode() {
-        isLogin = !isLogin;
-        document.getElementById('title').innerText = isLogin ? 'WIND LOGIN' : 'WIND REG';
-        document.getElementById('main-btn').innerText = isLogin ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
-        document.getElementById('toggle-text').innerText = isLogin ? 'Нет аккаунта? Регистрация' : 'Уже есть аккаунт? Войти';
-    }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    async function handleAuth() {
-        const user = document.getElementById('username').value;
-        const pass = document.getElementById('password').value;
+    async function register() {
+        const user = document.getElementById('user').value.trim();
+        const pass = document.getElementById('pass').value.trim();
         const status = document.getElementById('status');
 
-        if(user.length < 3) return status.innerText = "Ник слишком короткий";
+        if (!user || !pass) { status.innerText = "❌ Заполните все поля!"; return; }
 
-        // ТУТ БУДЕТ ЛОГИКА ОТПРАВКИ В FIREBASE
-        status.style.color = "#4ade80";
-        status.innerText = "Обработка... (Подключите Firebase)";
-        
-        // В будущем здесь будет сохранение в базу данных:
-        // UUID будет браться как current_users_count + 1
+        status.innerText = "⏳ Проверка...";
+        const userRef = db.ref('users/' + user);
+        const snapshot = await userRef.once('value');
+
+        if (snapshot.exists()) {
+            status.innerText = "❌ Этот ник уже занят!";
+            status.style.color = "#ef4444";
+        } else {
+            const countRef = db.ref('users_count');
+            const countSnap = await countRef.once('value');
+            let newUUID = (countSnap.val() || 0) + 1;
+
+            await userRef.set({
+                password: pass,
+                uuid: newUUID
+            });
+            await countRef.set(newUUID);
+
+            status.innerHTML = `<span style="color:#4ade80">✅ Успех! UUID: #${newUUID}</span><br>Заходи в лаунчер!`;
+        }
     }
 </script>
 </body>
