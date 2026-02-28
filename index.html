@@ -1,148 +1,333 @@
-<div id="dashBox" class="card hidden" style="max-width: 550px;">
-    <h1>WIND DASHBOARD</h1>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WIND CLIENT | Premium Cloud</title>
     
-    <div class="user-info">
-        <div style="text-align: left;">
-            <div id="u-name" style="font-size: 20px; font-weight: 800;">USER</div>
-            <div id="u-status" style="color: var(--accent); font-size: 12px; font-weight: 600; margin-top: 4px;">Загрузка подписки...</div>
-        </div>
-        <a href="https://github.com/WindClientFun/windclient/raw/main/launcher.exe" class="download-btn">СКАЧАТЬ</a>
-    </div>
-
-    <div id="activation-section" style="margin-bottom: 25px;">
-        <div style="display: flex; gap: 10px;">
-            <input type="text" id="promo-code" placeholder="Введите ключ активации" style="margin-bottom: 0; padding: 12px 20px;">
-            <button class="main-btn" style="width: auto; margin-top: 0; padding: 0 20px;" onclick="activateCode()">ОК</button>
-        </div>
-    </div>
-
-    <div id="dev-panel" class="hidden" style="background: rgba(192, 132, 252, 0.1); padding: 20px; border-radius: 25px; border: 1px dashed var(--accent); margin-bottom: 25px;">
-        <h3 style="font-size: 12px; color: var(--accent); margin-bottom: 15px; letter-spacing: 2px;">DEVELOPER CONSOLE</h3>
-        <select id="gen-days" style="width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 10px; margin-bottom: 10px; outline: none;">
-            <option value="30">30 Дней</option>
-            <option value="180">180 Дней</option>
-            <option value="365">365 Дней</option>
-            <option value="99999">LIFETIME</option>
-        </select>
-        <button class="main-btn" style="background: #fff; color: #000;" onclick="generateKey()">СОЗДАТЬ КЛЮЧ</button>
-        <div id="last-key" style="margin-top: 10px; font-family: monospace; font-size: 14px; color: var(--gold); cursor: pointer;" title="Нажми, чтобы скопировать"></div>
-    </div>
-
-    <div class="shop-grid">
-        <div class="shop-item full premium" onclick="buy()">
-            <div class="item-name" style="color: var(--gold);">КУПИТЬ КЛЮЧ У БОТА</div>
-            <div class="item-cost">Telegram Bot <span>@TetrisWindClientbot</span></div>
-        </div>
-    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     
-    <div class="logout" onclick="location.reload()">ВЫЙТИ ИЗ СИСТЕМЫ</div>
-</div>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
-<script>
-    // ... (Твой конфиг Firebase остается тем же) ...
-    const config = {
-        apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
-        databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
-        projectId: "windclient111",
-    };
-    firebase.initializeApp(config);
-    const db = firebase.database();
-    let currentUser = null;
+    <style>
+        :root {
+            --accent: #00f2ff; /* Цвет ветра/льда */
+            --accent-dark: #0066ff;
+            --bg: #050508;
+            --card-bg: rgba(10, 11, 20, 0.6);
+            --text: #ffffff;
+        }
 
-    // --- ЛОГИКА АВТОРИЗАЦИИ ---
-    async function startAuth() {
-        const u = document.getElementById('user').value.trim();
-        const p = document.getElementById('pass').value.trim();
-        const s = document.getElementById('status');
-        if(!u || !p) return;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        try {
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- ЭФФЕКТ ДЫМА И ВЕТРА --- */
+        #canvas-basic {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at center, #101226 0%, #050508 100%);
+        }
+
+        .wind-particle {
+            position: absolute;
+            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
+            height: 1px;
+            pointer-events: none;
+            animation: blow 3s linear infinite;
+        }
+
+        @keyframes blow {
+            0% { transform: translateX(-100vw); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateX(100vw); opacity: 0; }
+        }
+
+        /* --- КАРТОЧКА --- */
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 40px;
+            padding: 50px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 10;
+            transition: 0.5s ease;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            letter-spacing: 6px;
+            background: linear-gradient(to right, #fff, var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* --- ПОЛЯ ВВОДА --- */
+        .input-box {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            color: white;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--accent);
+            background: rgba(0, 242, 255, 0.05);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        }
+
+        .main-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(45deg, var(--accent-dark), var(--accent));
+            border: none;
+            border-radius: 20px;
+            color: #000;
+            font-weight: 900;
+            font-family: 'Orbitron';
+            cursor: pointer;
+            transition: 0.4s;
+            text-transform: uppercase;
+        }
+
+        .main-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.3);
+            letter-spacing: 2px;
+        }
+
+        /* --- NOTIFICATIONS --- */
+        #notify-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+
+        .notify {
+            background: rgba(0, 0, 0, 0.8);
+            border-left: 4px solid var(--accent);
+            padding: 15px 25px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            animation: slideIn 0.5s ease forwards;
+        }
+
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+        /* --- DASHBOARD --- */
+        .hidden { display: none; opacity: 0; }
+        
+        .status-badge {
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--accent);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .dev-badge {
+            background: linear-gradient(45deg, #ffd700, #ffa500);
+            color: black;
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="canvas-basic"></canvas>
+    <div id="notify-container"></div>
+
+    <div id="authBox" class="glass-card">
+        <h1>WIND CLOUD</h1>
+        <div class="input-box">
+            <input type="text" id="user" placeholder="Username">
+        </div>
+        <div class="input-box">
+            <input type="password" id="pass" placeholder="Password">
+        </div>
+        <button class="main-btn" onclick="startAuth()">Authorize</button>
+        <p style="text-align:center; margin-top:20px; font-size:12px; opacity:0.5; cursor:pointer" onclick="toggleReg()">Create account?</p>
+    </div>
+
+    <div id="dashBox" class="glass-card hidden">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:30px;">
+            <h1 style="margin:0; font-size:22px;">DASHBOARD</h1>
+            <div id="role-badge"></div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:25px; margin-bottom:20px;">
+            <p style="font-size:12px; opacity:0.5">Welcome back,</p>
+            <h2 id="u-name" style="font-family:'Orbitron'">USER</h2>
+            <p id="u-expiry" style="font-size:13px; margin-top:5px; color:var(--accent)">Loading...</p>
+        </div>
+
+        <div id="dev-panel" class="hidden" style="border: 1px dashed var(--accent); padding:15px; border-radius:20px; margin-bottom:20px;">
+            <p style="font-size:10px; color:var(--accent); margin-bottom:10px;">GENERATOR</p>
+            <select id="gen-days" style="width:100%; background:#000; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:10px;">
+                <option value="30">30 Days</option>
+                <option value="99999">Lifetime</option>
+            </select>
+            <button class="main-btn" style="padding:10px; font-size:12px;" onclick="generateKey()">Generate Key</button>
+            <div id="res-key" style="font-family:monospace; margin-top:10px; color:gold; text-align:center"></div>
+        </div>
+
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="promo-code" placeholder="License Key" style="margin-bottom:0">
+            <button class="main-btn" style="width:70px;" onclick="activateCode()"><i class="fa-solid fa-check"></i></button>
+        </div>
+
+        <a href="https://github.com/WindClientFun/windclient/raw/main/launcher.exe" class="main-btn" style="display:block; text-align:center; text-decoration:none; margin-top:20px; background:white; color:black;">Download</a>
+        
+        <p onclick="location.reload()" style="text-align:center; font-size:10px; opacity:0.3; margin-top:20px; cursor:pointer">LOGOUT</p>
+    </div>
+
+    <script>
+        // --- ЧАСТИЦЫ ВЕТРА ---
+        function createWind() {
+            for(let i=0; i<30; i++) {
+                let p = document.createElement('div');
+                p.className = 'wind-particle';
+                p.style.width = Math.random() * 200 + 50 + 'px';
+                p.style.top = Math.random() * 100 + 'vh';
+                p.style.left = '-200px';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                document.body.appendChild(p);
+            }
+        }
+        createWind();
+
+        // --- УВЕДОМЛЕНИЯ ---
+        function notify(text) {
+            const container = document.getElementById('notify-container');
+            const n = document.createElement('div');
+            n.className = 'notify';
+            n.innerText = text;
+            container.appendChild(n);
+            setTimeout(() => n.remove(), 3000);
+        }
+
+        // --- FIREBASE ЛОГИКА ---
+        const config = {
+            apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
+            databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
+            projectId: "windclient111",
+        };
+        firebase.initializeApp(config);
+        const db = firebase.database();
+        let mode = 'login';
+        let currentUser = null;
+
+        function toggleReg() {
+            mode = mode === 'login' ? 'reg' : 'login';
+            notify("Switched to " + mode);
+        }
+
+        async function startAuth() {
+            const u = document.getElementById('user').value.trim();
+            const p = document.getElementById('pass').value.trim();
+            if(!u || !p) return notify("Fill fields!");
+
             const ref = db.ref('users/' + u);
             const snap = await ref.once('value');
-            
-            if (mode === 'reg') {
-                if (snap.exists()) { s.innerText = 'НИК ЗАНЯТ'; }
-                else {
-                    await ref.set({ password: p, expiry: 0, role: 'user' });
-                    goDash(u, {role: 'user', expiry: 0});
-                }
+
+            if(mode === 'reg') {
+                if(snap.exists()) return notify("User exists!");
+                await ref.set({password: p, expiry: 0});
+                notify("Registered!");
+                goDash(u, {expiry: 0});
             } else {
-                if (snap.exists() && snap.val().password === p) {
+                if(snap.exists() && snap.val().password === p) {
+                    notify("Logged in!");
                     goDash(u, snap.val());
-                } else { s.innerText = 'ОШИБКА ВХОДА'; }
+                } else notify("Wrong data!");
             }
-        } catch(e) { s.innerText = e.message; }
-    }
-
-    function goDash(name, data) {
-        currentUser = name;
-        document.getElementById('authBox').classList.add('hidden');
-        document.getElementById('dashBox').classList.remove('hidden');
-        document.getElementById('dashBox').style.opacity = '1';
-        document.getElementById('u-name').innerText = name.toUpperCase();
-        
-        // Проверка на Developer
-        if(name.toLowerCase() === 'developer') {
-            document.getElementById('dev-panel').classList.remove('hidden');
-            document.getElementById('u-status').innerHTML = "⚡ <span style='color:var(--gold)'>FOREVER + ADMIN</span>";
-        } else {
-            updateStatusText(data.expiry);
         }
-    }
 
-    function updateStatusText(expiry) {
-        const st = document.getElementById('u-status');
-        if(!expiry || expiry === 0) {
-            st.innerText = "НЕТ ПОДПИСКИ";
-        } else if (expiry > 50000) {
-            st.innerText = "LIFETIME ACCESS";
-        } else {
-            const date = new Date(expiry).toLocaleDateString();
-            st.innerText = "ДО: " + date;
+        function goDash(name, data) {
+            currentUser = name;
+            document.getElementById('authBox').classList.add('hidden');
+            const dash = document.getElementById('dashBox');
+            dash.classList.remove('hidden');
+            setTimeout(() => dash.style.opacity = '1', 50);
+            
+            document.getElementById('u-name').innerText = name.toUpperCase();
+            
+            if(name.toLowerCase() === 'developer') {
+                document.getElementById('dev-panel').classList.remove('hidden');
+                document.getElementById('role-badge').innerHTML = '<span class="dev-badge">DEVELOPER</span>';
+                document.getElementById('u-expiry').innerText = "SYSTEM ADMIN ACCESS";
+            } else {
+                document.getElementById('role-badge').innerHTML = '<span class="status-badge">USER</span>';
+                updateExpiryDisplay(data.expiry);
+            }
         }
-    }
 
-    // --- ГЕНЕРАЦИЯ КЛЮЧЕЙ (ТОЛЬКО ДЛЯ DEV) ---
-    async function generateKey() {
-        const days = parseInt(document.getElementById('gen-days').value);
-        const key = "WIND-" + Math.random().toString(36).substr(2, 9).toUpperCase();
-        
-        await db.ref('keys/' + key).set(days);
-        const display = document.getElementById('last-key');
-        display.innerText = "КЛЮЧ: " + key;
-        display.onclick = () => {
-            navigator.clipboard.writeText(key);
-            alert("Скопировано!");
-        };
-    }
-
-    // --- АКТИВАЦИЯ КЛЮЧА ---
-    async function activateCode() {
-        const code = document.getElementById('promo-code').value.trim();
-        if(!code) return;
-
-        const keyRef = db.ref('keys/' + code);
-        const snap = await keyRef.once('value');
-
-        if(snap.exists()) {
-            const days = snap.val();
-            const userRef = db.ref('users/' + currentUser);
-            const userSnap = await userRef.once('value');
-            let currentExpiry = userSnap.val().expiry || Date.now();
-            
-            // Если подписка уже истекла, начинаем отсчет от сегодня
-            if (currentExpiry < Date.now()) currentExpiry = Date.now();
-
-            const newExpiry = days > 10000 ? 999999 : currentExpiry + (days * 24 * 60 * 60 * 1000);
-            
-            await userRef.update({ expiry: newExpiry });
-            await keyRef.remove(); // Удаляем ключ после использования
-            
-            updateStatusText(newExpiry);
-            alert("Ключ на " + days + " дн. активирован!");
-            document.getElementById('promo-code').value = "";
-        } else {
-            alert("Неверный или использованный ключ!");
+        function updateExpiryDisplay(expiry) {
+            const el = document.getElementById('u-expiry');
+            if(!expiry || expiry < Date.now()) el.innerText = "No active subscription";
+            else if(expiry > 9000000000000) el.innerText = "Lifetime Subscription";
+            else el.innerText = "Expires: " + new Date(expiry).toLocaleDateString();
         }
-    }
-</script>
+
+        async function generateKey() {
+            const days = parseInt(document.getElementById('gen-days').value);
+            const key = "WIND-" + Math.random().toString(36).substr(2, 8).toUpperCase();
+            await db.ref('keys/' + key).set(days);
+            document.getElementById('res-key').innerText = key;
+            notify("Key generated!");
+        }
+
+        async function activateCode() {
+            const code = document.getElementById('promo-code').value.trim();
+            const snap = await db.ref('keys/' + code).once('value');
+            if(snap.exists()) {
+                const days = snap.val();
+                const userRef = db.ref('users/' + currentUser);
+                const uSnap = await userRef.once('value');
+                let cur = uSnap.val().expiry || Date.now();
+                if(cur < Date.now()) cur = Date.now();
+                
+                const added = days > 1000 ? 9999999999999 : cur + (days * 86400000);
+                await userRef.update({expiry: added});
+                await db.ref('keys/' + code).remove();
+                updateExpiryDisplay(added);
+                notify("Activated: " + days + " days!");
+            } else notify("Invalid key!");
+        }
+    </script>
+</body>
+</html>
