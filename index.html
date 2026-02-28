@@ -1,298 +1,37 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIND CLIENT | Premium Cloud</title>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<div id="dashBox" class="card hidden" style="max-width: 550px;">
+    <h1>WIND DASHBOARD</h1>
     
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --accent: #c084fc;
-            --accent-glow: rgba(192, 132, 252, 0.4);
-            --bg: #030305;
-            --card-bg: rgba(10, 10, 18, 0.7);
-            --border: rgba(255, 255, 255, 0.08);
-            --gold: #fbbf24;
-            --blue: #3b82f6;
-            --text-main: #ffffff;
-            --text-dim: rgba(255, 255, 255, 0.6);
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            background: var(--bg);
-            color: var(--text-main);
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            overflow: hidden; /* Чтобы сферы не создавали скролл */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* Анимированный фон */
-        .bg-blobs {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
-        .blob {
-            position: absolute;
-            width: 400px; height: 400px;
-            background: var(--accent);
-            filter: blur(120px);
-            border-radius: 50%;
-            opacity: 0.15;
-            animation: move 20s infinite alternate;
-        }
-        @keyframes move {
-            from { transform: translate(-10%, -10%); }
-            to { transform: translate(20%, 20%); }
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            padding: 45px;
-            border-radius: 35px;
-            border: 1px solid var(--border);
-            text-align: center;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.02);
-            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            position: relative;
-            z-index: 10;
-        }
-
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-weight: 900;
-            background: linear-gradient(135deg, #fff 30%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-size: 32px;
-            margin-bottom: 30px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-        }
-
-        /* Tabs */
-        .tabs {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 18px;
-            padding: 6px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
-        }
-
-        .tab {
-            padding: 12px;
-            cursor: pointer;
-            border-radius: 14px;
-            transition: all 0.3s ease;
-            font-weight: 700;
-            font-size: 13px;
-            color: var(--text-dim);
-            border: none;
-            background: transparent;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .tab.active {
-            background: var(--accent);
-            color: #000;
-            box-shadow: 0 8px 20px var(--accent-glow);
-        }
-
-        /* Inputs */
-        .input-group { margin-bottom: 15px; position: relative; }
-        
-        input {
-            width: 100%;
-            padding: 18px 24px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            color: white;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        input:focus {
-            border-color: var(--accent);
-            background: rgba(192, 132, 252, 0.05);
-            box-shadow: 0 0 25px rgba(192, 132, 252, 0.1);
-        }
-
-        /* Buttons */
-        .main-btn {
-            width: 100%;
-            padding: 18px;
-            background: var(--accent);
-            border: none;
-            border-radius: 20px;
-            color: #000;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.4s ease;
-            font-size: 15px;
-            text-transform: uppercase;
-            font-family: 'Orbitron';
-            letter-spacing: 1px;
-            margin-top: 10px;
-        }
-
-        .main-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px var(--accent-glow);
-            filter: brightness(1.1);
-        }
-
-        /* Shop Grid */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .shop-item {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border);
-            padding: 18px;
-            border-radius: 24px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            text-align: left;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .shop-item:hover {
-            border-color: var(--accent);
-            background: rgba(192, 132, 252, 0.08);
-            transform: scale(1.02);
-        }
-
-        .item-name { font-size: 11px; font-weight: 800; color: var(--text-dim); margin-bottom: 6px; letter-spacing: 1px; }
-        .item-cost { font-size: 16px; font-weight: 800; display: flex; align-items: baseline; gap: 5px; }
-        .item-cost span { font-size: 11px; color: var(--text-dim); font-weight: 400; }
-
-        .full { grid-column: span 2; }
-        .premium { 
-            border: 1px solid rgba(251, 191, 36, 0.3); 
-            background: linear-gradient(145deg, rgba(251, 191, 36, 0.05), transparent); 
-        }
-        .premium:hover { border-color: var(--gold); background: rgba(251, 191, 36, 0.1); }
-
-        .status { font-size: 12px; margin-top: 20px; color: var(--accent); font-weight: 600; letter-spacing: 1px; }
-        .hidden { display: none; opacity: 0; pointer-events: none; }
-
-        .user-info {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 24px;
-            border-radius: 28px;
-            margin-bottom: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border);
-        }
-
-        .download-btn {
-            background: white;
-            color: black;
-            padding: 12px 20px;
-            border-radius: 14px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 12px;
-            transition: 0.3s;
-        }
-        .download-btn:hover { transform: scale(1.05); box-shadow: 0 10px 20px rgba(255,255,255,0.1); }
-
-        .logout {
-            margin-top: 30px;
-            font-size: 11px;
-            color: var(--text-dim);
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            transition: 0.3s;
-        }
-        .logout:hover { color: var(--accent); }
-    </style>
-</head>
-<body>
-
-<div class="bg-blobs">
-    <div class="blob" style="top: -10%; left: -10%;"></div>
-    <div class="blob" style="bottom: -10%; right: -10%; background: var(--blue);"></div>
-</div>
-
-<div id="authBox" class="card">
-    <h1>WIND CLOUD</h1>
-    <div class="tabs">
-        <button id="t-login" class="tab active" onclick="setMode('login')">ВХОД</button>
-        <button id="t-reg" class="tab" onclick="setMode('reg')">РЕГИСТРАЦИЯ</button>
-    </div>
-    <div class="input-group">
-        <input type="text" id="user" placeholder="Ваш никнейм">
-    </div>
-    <div class="input-group">
-        <input type="password" id="pass" placeholder="Пароль">
-    </div>
-    <button id="actionBtn" class="main-btn" onclick="startAuth()">АВТОРИЗАЦИЯ</button>
-    <div id="status" class="status">СИСТЕМА ГОТОВА</div>
-</div>
-
-<div id="dashBox" class="card hidden" style="max-width: 520px;">
-    <h1>DASHBOARD</h1>
     <div class="user-info">
         <div style="text-align: left;">
-            <div id="u-name" style="font-size: 20px; font-weight: 800; letter-spacing: 1px;">USER</div>
-            <div id="u-uuid" style="color: var(--accent); font-size: 11px; font-family: 'Orbitron'; margin-top: 4px;">UUID: #000</div>
+            <div id="u-name" style="font-size: 20px; font-weight: 800;">USER</div>
+            <div id="u-status" style="color: var(--accent); font-size: 12px; font-weight: 600; margin-top: 4px;">Загрузка подписки...</div>
         </div>
-        <a href="https://github.com/WindClientFun/windclient/raw/main/launcher.exe" class="download-btn">
-            СКАЧАТЬ
-        </a>
+        <a href="https://github.com/WindClientFun/windclient/raw/main/launcher.exe" class="download-btn">СКАЧАТЬ</a>
+    </div>
+
+    <div id="activation-section" style="margin-bottom: 25px;">
+        <div style="display: flex; gap: 10px;">
+            <input type="text" id="promo-code" placeholder="Введите ключ активации" style="margin-bottom: 0; padding: 12px 20px;">
+            <button class="main-btn" style="width: auto; margin-top: 0; padding: 0 20px;" onclick="activateCode()">ОК</button>
+        </div>
+    </div>
+
+    <div id="dev-panel" class="hidden" style="background: rgba(192, 132, 252, 0.1); padding: 20px; border-radius: 25px; border: 1px dashed var(--accent); margin-bottom: 25px;">
+        <h3 style="font-size: 12px; color: var(--accent); margin-bottom: 15px; letter-spacing: 2px;">DEVELOPER CONSOLE</h3>
+        <select id="gen-days" style="width: 100%; background: #000; color: #fff; border: 1px solid var(--border); padding: 10px; border-radius: 10px; margin-bottom: 10px; outline: none;">
+            <option value="30">30 Дней</option>
+            <option value="180">180 Дней</option>
+            <option value="365">365 Дней</option>
+            <option value="99999">LIFETIME</option>
+        </select>
+        <button class="main-btn" style="background: #fff; color: #000;" onclick="generateKey()">СОЗДАТЬ КЛЮЧ</button>
+        <div id="last-key" style="margin-top: 10px; font-family: monospace; font-size: 14px; color: var(--gold); cursor: pointer;" title="Нажми, чтобы скопировать"></div>
     </div>
 
     <div class="shop-grid">
-        <div class="shop-item" onclick="buy()">
-            <div class="item-name">30 ДНЕЙ</div>
-            <div class="item-cost">40₴ <span>/ 88₽</span></div>
-        </div>
-        <div class="shop-item" onclick="buy()">
-            <div class="item-name">180 ДНЕЙ</div>
-            <div class="item-cost">100₴ <span>/ 220₽</span></div>
-        </div>
-        <div class="shop-item" onclick="buy()">
-            <div class="item-name">365 ДНЕЙ</div>
-            <div class="item-cost">140₴ <span>/ 308₽</span></div>
-        </div>
-        <div class="shop-item" onclick="buy()">
-            <div class="item-name">LIFETIME</div>
-            <div class="item-cost">180₴ <span>/ 396₽</span></div>
-        </div>
-        <div class="shop-item full" style="border-color: rgba(59, 130, 246, 0.4);" onclick="buy()">
-            <div class="item-name" style="color: var(--blue);">UPGRADE TO PREMIUM</div>
-            <div class="item-cost">50₴ <span>/ 110₽</span></div>
-        </div>
         <div class="shop-item full premium" onclick="buy()">
-            <div class="item-name" style="color: var(--gold);">PREMIUM + CLIENT FOREVER</div>
-            <div class="item-cost">175₴ <span>/ 385₽</span></div>
+            <div class="item-name" style="color: var(--gold);">КУПИТЬ КЛЮЧ У БОТА</div>
+            <div class="item-cost">Telegram Bot <span>@TetrisWindClientbot</span></div>
         </div>
     </div>
     
@@ -300,71 +39,110 @@
 </div>
 
 <script>
+    // ... (Твой конфиг Firebase остается тем же) ...
     const config = {
         apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
         databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
         projectId: "windclient111",
     };
-
     firebase.initializeApp(config);
     const db = firebase.database();
-    let mode = 'login';
+    let currentUser = null;
 
-    function setMode(m) {
-        mode = m;
-        document.getElementById('t-login').classList.toggle('active', m === 'login');
-        document.getElementById('t-reg').classList.toggle('active', m === 'reg');
-        document.getElementById('actionBtn').innerText = m === 'login' ? 'ВОЙТИ' : 'СОЗДАТЬ АККАУНТ';
-    }
-
-    function buy() {
-        window.open('https://t.me/TetrisWindClientbot', '_blank');
-    }
-
+    // --- ЛОГИКА АВТОРИЗАЦИИ ---
     async function startAuth() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
         const s = document.getElementById('status');
-
-        if(!u || !p) { s.innerText = 'ЗАПОЛНИТЕ ВСЕ ПОЛЯ'; return; }
-        s.innerText = 'ПОДКЛЮЧЕНИЕ...';
+        if(!u || !p) return;
 
         try {
             const ref = db.ref('users/' + u);
             const snap = await ref.once('value');
-
+            
             if (mode === 'reg') {
-                if (snap.exists()) { s.innerText = 'НИКНЕЙМ ЗАНЯТ'; }
+                if (snap.exists()) { s.innerText = 'НИК ЗАНЯТ'; }
                 else {
-                    const cSnap = await db.ref('users_count').once('value');
-                    let nextID = (cSnap.val() || 0) + 1;
-                    await ref.set({ password: p, uuid: nextID });
-                    await db.ref('users_count').set(nextID);
-                    goDash(u, nextID);
+                    await ref.set({ password: p, expiry: 0, role: 'user' });
+                    goDash(u, {role: 'user', expiry: 0});
                 }
             } else {
                 if (snap.exists() && snap.val().password === p) {
-                    goDash(u, snap.val().uuid);
-                } else {
-                    s.innerText = 'НЕВЕРНЫЕ ДАННЫЕ';
-                }
+                    goDash(u, snap.val());
+                } else { s.innerText = 'ОШИБКА ВХОДА'; }
             }
-        } catch(e) { s.innerText = 'ОШИБКА: ' + e.message; }
+        } catch(e) { s.innerText = e.message; }
     }
 
-    function goDash(name, id) {
-        const auth = document.getElementById('authBox');
-        const dash = document.getElementById('dashBox');
+    function goDash(name, data) {
+        currentUser = name;
+        document.getElementById('authBox').classList.add('hidden');
+        document.getElementById('dashBox').classList.remove('hidden');
+        document.getElementById('dashBox').style.opacity = '1';
+        document.getElementById('u-name').innerText = name.toUpperCase();
         
-        auth.style.opacity = '0';
-        setTimeout(() => {
-            auth.classList.add('hidden');
-            dash.classList.remove('hidden');
-            setTimeout(() => { dash.style.opacity = '1'; }, 50);
-            document.getElementById('u-name').innerText = name.toUpperCase();
-            document.getElementById('u-uuid').innerText = "UUID: #" + id;
-        }, 300);
+        // Проверка на Developer
+        if(name.toLowerCase() === 'developer') {
+            document.getElementById('dev-panel').classList.remove('hidden');
+            document.getElementById('u-status').innerHTML = "⚡ <span style='color:var(--gold)'>FOREVER + ADMIN</span>";
+        } else {
+            updateStatusText(data.expiry);
+        }
+    }
+
+    function updateStatusText(expiry) {
+        const st = document.getElementById('u-status');
+        if(!expiry || expiry === 0) {
+            st.innerText = "НЕТ ПОДПИСКИ";
+        } else if (expiry > 50000) {
+            st.innerText = "LIFETIME ACCESS";
+        } else {
+            const date = new Date(expiry).toLocaleDateString();
+            st.innerText = "ДО: " + date;
+        }
+    }
+
+    // --- ГЕНЕРАЦИЯ КЛЮЧЕЙ (ТОЛЬКО ДЛЯ DEV) ---
+    async function generateKey() {
+        const days = parseInt(document.getElementById('gen-days').value);
+        const key = "WIND-" + Math.random().toString(36).substr(2, 9).toUpperCase();
+        
+        await db.ref('keys/' + key).set(days);
+        const display = document.getElementById('last-key');
+        display.innerText = "КЛЮЧ: " + key;
+        display.onclick = () => {
+            navigator.clipboard.writeText(key);
+            alert("Скопировано!");
+        };
+    }
+
+    // --- АКТИВАЦИЯ КЛЮЧА ---
+    async function activateCode() {
+        const code = document.getElementById('promo-code').value.trim();
+        if(!code) return;
+
+        const keyRef = db.ref('keys/' + code);
+        const snap = await keyRef.once('value');
+
+        if(snap.exists()) {
+            const days = snap.val();
+            const userRef = db.ref('users/' + currentUser);
+            const userSnap = await userRef.once('value');
+            let currentExpiry = userSnap.val().expiry || Date.now();
+            
+            // Если подписка уже истекла, начинаем отсчет от сегодня
+            if (currentExpiry < Date.now()) currentExpiry = Date.now();
+
+            const newExpiry = days > 10000 ? 999999 : currentExpiry + (days * 24 * 60 * 60 * 1000);
+            
+            await userRef.update({ expiry: newExpiry });
+            await keyRef.remove(); // Удаляем ключ после использования
+            
+            updateStatusText(newExpiry);
+            alert("Ключ на " + days + " дн. активирован!");
+            document.getElementById('promo-code').value = "";
+        } else {
+            alert("Неверный или использованный ключ!");
+        }
     }
 </script>
-</body>
-</html>
