@@ -3,203 +3,260 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIND | Next-Gen Ecosystem</title>
+    <title>WIND | Ultra Visuals</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <style>
-        body { background-color: #050505; color: white; font-family: sans-serif; }
-        .glass { background: rgba(20, 20, 20, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
-        .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); transition: 0.3s; }
-        .btn-purple:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4); }
-        input, select { background: #111 !important; border: 1px solid #222 !important; color: white !important; padding: 12px; border-radius: 12px; outline: none; }
-        .hidden-panel { display: none !important; }
+        :root {
+            --accent: #8b5cf6;
+            --bg: #030303;
+            --glass-blur: 12px;
+            --glass-opacity: 0.7;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: white;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            transition: background 0.5s ease;
+        }
+
+        #particles-js {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+        }
+
+        .glass {
+            background: rgba(15, 15, 15, var(--glass-opacity));
+            backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            transition: 0.3s;
+        }
+
+        .btn-accent:hover {
+            transform: scale(1.05) translateY(-3px);
+            filter: brightness(1.2);
+        }
+
+        /* Анимация появления */
+        .reveal {
+            animation: revealAnim 0.8s backwards cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+
+        @keyframes revealAnim {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+
+        /* Кастомный Скролл */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        /* Жидкое стекло (Liquid) */
+        .liquid {
+            --glass-blur: 30px;
+            --glass-opacity: 0.4;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
     </style>
 </head>
-<body class="overflow-x-hidden">
+<body>
 
-    <nav class="fixed w-full z-50 p-6 flex justify-between items-center glass">
-        <div class="text-2xl font-black italic tracking-tighter">WIND</div>
-        <div id="user-info" class="text-xs font-bold text-gray-400">Гость</div>
+    <div id="particles-js"></div>
+
+    <div class="fixed bottom-6 right-6 z-[200]">
+        <button onclick="toggleSettings()" class="w-14 h-14 glass rounded-full flex items-center justify-center text-2xl hover:rotate-90 transition-transform duration-500">
+            <i class="bi bi-gear-fill">⚙️</i>
+        </button>
+        
+        <div id="settings-panel" class="absolute bottom-20 right-0 w-72 glass p-6 rounded-[2rem] hidden reveal">
+            <h3 class="text-sm font-bold mb-4 uppercase text-gray-400">Кастомизация</h3>
+            
+            <p class="text-[10px] mb-2 uppercase">Цвет системы</p>
+            <div class="grid grid-cols-5 gap-2 mb-6">
+                <div onclick="setTheme('#a3e635')" class="h-6 rounded-full bg-lime-400 cursor-pointer border border-white/20"></div>
+                <div onclick="setTheme('#8b5cf6')" class="h-6 rounded-full bg-purple-500 cursor-pointer border border-white/20"></div>
+                <div onclick="setTheme('#3b82f6')" class="h-6 rounded-full bg-blue-500 cursor-pointer border border-white/20"></div>
+                <div onclick="setTheme('#2dd4bf')" class="h-6 rounded-full bg-teal-400 cursor-pointer border border-white/20"></div>
+                <div onclick="setTheme('#991b1b')" class="h-6 rounded-full bg-red-800 cursor-pointer border border-white/20"></div>
+            </div>
+
+            <div class="space-y-4">
+                <label class="flex justify-between items-center text-xs">
+                    Снежинки <input type="checkbox" id="check-snow" onchange="toggleParticles()" checked>
+                </label>
+                <label class="flex justify-between items-center text-xs">
+                    Жидкое стекло <input type="checkbox" onchange="toggleLiquid(this)">
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <nav class="fixed top-0 w-full p-6 z-[100] flex justify-between items-center">
+        <div class="text-3xl font-black italic tracking-tighter reveal" style="color: var(--accent)">WIND</div>
+        <div class="flex gap-4">
+            <button onclick="document.getElementById('auth-section').scrollIntoView()" class="glass px-6 py-2 rounded-full text-xs font-bold">АККАУНТ</button>
+        </div>
     </nav>
 
-    <section id="hero" class="min-h-screen flex flex-col justify-center items-center text-center px-6">
-        <h1 class="text-6xl font-black mb-4">WIND <span class="text-purple-500">CLIENT</span></h1>
-        <p class="text-gray-500 max-w-md mb-8">Лучшее решение для игры. Регистрация доступна ниже.</p>
-        <a href="#auth-box" class="btn-purple px-8 py-3 rounded-xl font-bold">НАЧАТЬ</a>
+    <section class="min-h-screen flex flex-col justify-center items-center text-center px-6">
+        <h1 class="text-7xl md:text-9xl font-black mb-6 reveal italic tracking-tight" style="text-shadow: 0 0 50px var(--accent);">
+            FEEL THE <br><span style="color: var(--accent)">POWER.</span>
+        </h1>
+        <p class="text-gray-400 max-w-lg mb-10 reveal" style="animation-delay: 0.2s">
+            Самый эстетичный чит-клиент с беспрецедентной скоростью работы.
+        </p>
+        <button class="btn-accent px-12 py-5 rounded-2xl font-black text-xl reveal shadow-2xl" style="animation-delay: 0.4s">
+            GET ACCESS
+        </button>
     </section>
 
-    <section id="auth-box" class="py-20 flex justify-center">
-        <div class="glass p-8 rounded-[2rem] w-full max-w-md mx-4">
-            <div class="flex justify-around mb-8 border-b border-white/5 pb-4">
-                <button onclick="showTab('login')" id="btn-login" class="text-purple-500 font-bold">ВХОД</button>
-                <button onclick="showTab('reg')" id="btn-reg" class="text-gray-500">РЕГИСТРАЦИЯ</button>
+    <section id="auth-section" class="py-20 flex justify-center px-6">
+        <div class="glass p-10 rounded-[3rem] w-full max-w-md shadow-[0_0_100px_rgba(0,0,0,0.5)] reveal">
+            <div class="flex justify-center gap-10 mb-10 font-black text-xs tracking-widest uppercase">
+                <button onclick="switchAuth('login')" id="t-l" class="text-purple-500 border-b-2 border-purple-500">Вход</button>
+                <button onclick="switchAuth('reg')" id="t-r" class="text-gray-600">Регистрация</button>
             </div>
 
-            <div id="panel-login" class="flex flex-col gap-4">
-                <input type="email" id="email-log" placeholder="Email">
-                <input type="password" id="pass-log" placeholder="Пароль">
-                <button onclick="loginUser()" class="btn-purple py-3 rounded-xl font-bold">ВОЙТИ</button>
-            </div>
-
-            <div id="panel-reg" class="hidden-panel flex flex-col gap-4">
-                <input type="text" id="nick-reg" placeholder="Никнейм">
-                <input type="email" id="email-reg" placeholder="Email">
-                <input type="password" id="pass-reg" placeholder="Пароль">
-                <button onclick="registerUser()" class="btn-purple py-3 rounded-xl font-bold">СОЗДАТЬ</button>
+            <div id="auth-fields" class="space-y-4">
+                <input type="text" id="u-name" placeholder="Username" class="w-full p-4 rounded-2xl glass outline-none">
+                <input type="password" id="u-pass" placeholder="Password" class="w-full p-4 rounded-2xl glass outline-none">
+                <button onclick="authAction()" id="main-auth-btn" class="btn-accent w-full py-5 rounded-2xl font-black uppercase tracking-widest mt-4">ВЫПОЛНИТЬ</button>
             </div>
         </div>
     </section>
 
-    <section id="shop" class="py-20 text-center">
-        <h2 class="text-3xl font-bold mb-10 text-purple-400">КУПИТЬ ПОДПИСКУ</h2>
-        <div class="flex flex-wrap justify-center gap-6 px-6">
-            <div class="glass p-6 rounded-3xl w-64 border-t-2 border-purple-500/30">
-                <h3 class="text-xl font-bold mb-4">Навсегда</h3>
-                <p class="text-gray-500 mb-6 text-sm">Полный доступ ко всем функциям.</p>
-                <a href="https://t.me/los_angeles_love" class="block bg-white text-black py-2 rounded-lg font-bold">В ЛС ТГ</a>
-            </div>
-            <div class="glass p-6 rounded-3xl w-64">
-                <h3 class="text-xl font-bold mb-4">Бот Оплаты</h3>
-                <p class="text-gray-500 mb-6 text-sm">Автоматическая покупка ключей.</p>
-                <a href="https://t.me/TetrisWindClientbot" class="block btn-purple py-2 rounded-lg font-bold">ОТКРЫТЬ БОТА</a>
-            </div>
-        </div>
-    </section>
-
-    <div id="admin-panel" class="fixed inset-0 bg-[#050505] z-[100] hidden-panel overflow-y-auto p-8">
-        <div class="max-w-4xl mx-auto">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-3xl font-black text-purple-500 italic">ADMIN TERMINAL</h2>
-                <button onclick="location.reload()" class="bg-red-600 px-4 py-2 rounded-lg font-bold">ВЫХОД</button>
+    <div id="dev-panel" class="fixed inset-0 bg-[#020202] z-[500] hidden flex flex-col p-10 overflow-y-auto">
+        <div class="max-w-6xl mx-auto w-full">
+            <div class="flex justify-between items-center mb-20">
+                <h2 class="text-5xl font-black italic italic">DEV <span style="color: var(--accent)">TERMINAL</span></h2>
+                <button onclick="location.reload()" class="bg-red-600 px-8 py-3 rounded-2xl font-bold">LOGOUT</button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-4">Генерация ключей</h3>
-                    <select id="key-type" class="w-full mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div class="glass p-8 rounded-[2.5rem] reveal">
+                    <h3 class="mb-6 font-bold uppercase text-gray-500">License Generator</h3>
+                    <select id="k-type" class="w-full p-4 glass rounded-xl mb-4 outline-none">
                         <option value="30_days">30 Дней</option>
-                        <option value="183_days">183 Дня</option>
-                        <option value="360_days">360 Дней</option>
                         <option value="lifetime">Навсегда</option>
-                        <option value="lifetime_premium">Навсегда Premium</option>
-                        <option value="premium_plus">Premium+</option>
                         <option value="lifetime_premium_plus">Навсегда Premium+</option>
                     </select>
-                    <button onclick="genKey()" class="w-full btn-purple py-3 rounded-xl font-bold">СОЗДАТЬ КЛЮЧ</button>
+                    <button onclick="genKey()" class="btn-accent w-full py-4 rounded-xl font-bold">GENERATE KEY</button>
                 </div>
-
-                <div class="glass p-6 rounded-3xl">
-                    <h3 class="text-xs uppercase text-gray-500 font-bold mb-4">Выдача прав</h3>
-                    <input type="text" id="target-uid" placeholder="UID пользователя" class="w-full mb-4">
-                    <div class="flex gap-2">
-                        <button onclick="setRank('Moderator')" class="flex-1 bg-blue-600 py-2 rounded-lg font-bold">MODER</button>
-                        <button onclick="setRank('Admin')" class="flex-1 bg-red-600 py-2 rounded-lg font-bold">ADMIN</button>
+                
+                <div class="glass p-8 rounded-[2.5rem] reveal" style="animation-delay: 0.1s">
+                    <h3 class="mb-6 font-bold uppercase text-gray-500">User Management</h3>
+                    <input type="text" id="t-user" placeholder="User nickname" class="w-full p-4 glass rounded-xl mb-4 outline-none">
+                    <div class="flex gap-4">
+                        <button onclick="rank('Moder')" class="flex-1 bg-blue-600 py-3 rounded-xl font-bold">MODER</button>
+                        <button onclick="rank('Admin')" class="flex-1 bg-red-800 py-3 rounded-xl font-bold">ADMIN</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="mt-8 glass p-6 rounded-3xl h-48 overflow-y-auto text-xs font-mono text-green-400" id="console">
-                > Система готова к работе...
             </div>
         </div>
     </div>
 
     <script>
-        // ТВОИ ДАННЫЕ FIREBASE
+        // --- FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
             authDomain: "wind-client-b6c33.firebaseapp.com",
             databaseURL: "https://wind-client-b6c33-default-rtdb.firebaseio.com",
-            projectId: "wind-client-b6c33",
-            storageBucket: "wind-client-b6c33.appspot.com"
+            projectId: "wind-client-b6c33"
         };
-
-        // Инициализация
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        const auth = firebase.auth();
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
-        function showTab(tab) {
-            if(tab === 'login') {
-                document.getElementById('panel-login').classList.remove('hidden-panel');
-                document.getElementById('panel-reg').classList.add('hidden-panel');
-                document.getElementById('btn-login').style.color = '#8b5cf6';
-                document.getElementById('btn-reg').style.color = '#666';
+        // --- SETTINGS LOGIC ---
+        function toggleSettings() {
+            const p = document.getElementById('settings-panel');
+            p.classList.toggle('hidden');
+        }
+
+        function setTheme(color) {
+            document.documentElement.style.setProperty('--accent', color);
+            localStorage.setItem('wind-theme', color);
+        }
+
+        function toggleLiquid(el) {
+            document.querySelectorAll('.glass').forEach(card => {
+                card.classList.toggle('liquid', el.checked);
+            });
+        }
+
+        // --- PARTICLES (Снежинки) ---
+        function loadParticles() {
+            particlesJS("particles-js", {
+                "particles": {
+                    "number": { "value": 80 },
+                    "color": { "value": "#ffffff" },
+                    "shape": { "type": "circle" },
+                    "opacity": { "value": 0.5 },
+                    "size": { "value": 3 },
+                    "move": { "enable": true, "speed": 2, "direction": "bottom" }
+                }
+            });
+        }
+        loadParticles();
+
+        function toggleParticles() {
+            const canvas = document.querySelector('#particles-js canvas');
+            canvas.style.display = document.getElementById('check-snow').checked ? 'block' : 'none';
+        }
+
+        // --- AUTH LOGIC ---
+        let mode = 'login';
+        function switchAuth(m) {
+            mode = m;
+            document.getElementById('t-l').className = m === 'login' ? "text-purple-500 border-b-2 border-purple-500" : "text-gray-600";
+            document.getElementById('t-r').className = m === 'reg' ? "text-purple-500 border-b-2 border-purple-500" : "text-gray-600";
+        }
+
+        function authAction() {
+            const u = document.getElementById('u-name').value.trim();
+            const p = document.getElementById('u-pass').value.trim();
+            if(!u || !p) return;
+
+            if(mode === 'reg') {
+                db.ref('users/' + u).set({ password: p, rank: 'User' });
+                alert("Создано!"); switchAuth('login');
             } else {
-                document.getElementById('panel-login').classList.add('hidden-panel');
-                document.getElementById('panel-reg').classList.remove('hidden-panel');
-                document.getElementById('btn-reg').style.color = '#8b5cf6';
-                document.getElementById('btn-login').style.color = '#666';
+                db.ref('users/' + u).once('value', s => {
+                    if(s.exists() && s.val().password === p) {
+                        if(u === 'developer') {
+                            document.getElementById('dev-panel').classList.remove('hidden');
+                        } else {
+                            alert("Вход выполнен, " + u);
+                        }
+                    } else { alert("Ошибка!"); }
+                });
             }
         }
 
-        // РЕГИСТРАЦИЯ
-        function registerUser() {
-            const email = document.getElementById('email-reg').value;
-            const pass = document.getElementById('pass-reg').value;
-            const nick = document.getElementById('nick-reg').value;
-
-            if(!email || !pass || !nick) return alert("Заполни все поля!");
-
-            auth.createUserWithEmailAndPassword(email, pass)
-                .then((cred) => {
-                    db.ref('users/' + cred.user.uid).set({
-                        username: nick,
-                        rank: 'User',
-                        sub: 'None'
-                    });
-                    alert("Аккаунт создан! Теперь войди.");
-                    showTab('login');
-                })
-                .catch(err => alert(err.message));
-        }
-
-        // ВХОД
-        function loginUser() {
-            const email = document.getElementById('email-log').value;
-            const pass = document.getElementById('pass-log').value;
-
-            auth.signInWithEmailAndPassword(email, pass)
-                .then((cred) => {
-                    document.getElementById('user-info').innerText = email;
-                    
-                    // ТУТ УСЛОВИЕ ДЛЯ АДМИНКИ (Замени на свой email)
-                    if(email === 'developer@wind.com') {
-                        document.getElementById('admin-panel').classList.remove('hidden-panel');
-                    } else {
-                        alert("Вход выполнен! Вы обычный пользователь.");
-                    }
-                })
-                .catch(err => alert("Ошибка: " + err.message));
-        }
-
-        // АДМИН-ФУНКЦИИ
+        // --- ADMIN ---
         function genKey() {
-            const type = document.getElementById('key-type').value;
-            const key = "WIND-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-            
-            db.ref('license_keys/' + key).set({ plan: type, status: 'active' });
-            
-            const log = document.getElementById('console');
-            log.innerHTML += `<br>> Ключ ${key} создан (${type})`;
-            log.scrollTop = log.scrollHeight;
-            alert("Ключ: " + key);
+            const key = "WIND-" + Math.random().toString(36).substring(2, 12).toUpperCase();
+            db.ref('keys/' + key).set({ type: document.getElementById('k-type').value });
+            alert("KEY: " + key);
         }
 
-        function setRank(rank) {
-            const uid = document.getElementById('target-uid').value;
-            if(!uid) return alert("Нужен UID!");
-            db.ref('users/' + uid).update({ rank: rank });
-            alert("Ранг обновлен!");
+        function rank(r) {
+            const t = document.getElementById('t-user').value;
+            db.ref('users/' + t).update({ rank: r });
+            alert("Права " + r + " выданы пользователю " + t);
         }
     </script>
 </body>
