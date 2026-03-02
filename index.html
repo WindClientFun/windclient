@@ -3,331 +3,277 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WIND CLIENT | Premium Cloud</title>
+    <title>WIND | Advanced Software Ecosystem</title>
     
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;900&family=Plus+Jakarta+Sans:wght@300;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
         :root {
-            --accent: #00f2ff; /* Цвет ветра/льда */
-            --accent-dark: #0066ff;
-            --bg: #050508;
-            --card-bg: rgba(10, 11, 20, 0.6);
-            --text: #ffffff;
+            --primary: #8b5cf6;
+            --secondary: #06b6d4;
+            --dark: #030303;
+            --glass: rgba(15, 15, 15, 0.7);
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: var(--bg);
-            color: var(--text);
             font-family: 'Plus Jakarta Sans', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
+            background-color: var(--dark);
+            color: #fff;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
 
-        /* --- ЭФФЕКТ ДЫМА И ВЕТРА --- */
-        #canvas-basic {
+        /* Кастомный курсор */
+        #cursor {
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1;
-            background: radial-gradient(circle at center, #101226 0%, #050508 100%);
-        }
-
-        .wind-particle {
-            position: absolute;
-            background: linear-gradient(90deg, transparent, rgba(0, 242, 255, 0.2), transparent);
-            height: 1px;
             pointer-events: none;
-            animation: blow 3s linear infinite;
+            z-index: 9999;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
         }
 
-        @keyframes blow {
-            0% { transform: translateX(-100vw); opacity: 0; }
-            50% { opacity: 1; }
-            100% { transform: translateX(100vw); opacity: 0; }
-        }
-
-        /* --- КАРТОЧКА --- */
-        .glass-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
+        /* Эффект Glassmorphism */
+        .glass {
+            background: var(--glass);
+            backdrop-filter: blur(20px) saturate(180%);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 40px;
-            padding: 50px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 50px 100px rgba(0,0,0,0.5);
-            position: relative;
-            z-index: 10;
-            transition: 0.5s ease;
         }
 
-        h1 {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 32px;
-            letter-spacing: 6px;
-            background: linear-gradient(to right, #fff, var(--accent));
+        /* Анимированный градиентный текст */
+        .gradient-text {
+            background: linear-gradient(90deg, #fff, var(--primary), var(--secondary), #fff);
+            background-size: 300% 100%;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 30px;
-            text-align: center;
+            animation: gradientMove 8s linear infinite;
         }
 
-        /* --- ПОЛЯ ВВОДА --- */
-        .input-box {
-            position: relative;
-            margin-bottom: 20px;
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
         }
 
-        input {
-            width: 100%;
-            padding: 18px 25px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            color: white;
-            outline: none;
-            transition: 0.3s;
+        /* Секция Hero */
+        .hero-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 70%);
+            z-index: -1;
         }
 
-        input:focus {
-            border-color: var(--accent);
-            background: rgba(0, 242, 255, 0.05);
-            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
+        /* Компонент Карточки */
+        .feature-card {
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        .main-btn {
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(45deg, var(--accent-dark), var(--accent));
-            border: none;
-            border-radius: 20px;
-            color: #000;
-            font-weight: 900;
-            font-family: 'Orbitron';
-            cursor: pointer;
-            transition: 0.4s;
-            text-transform: uppercase;
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--primary);
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.1);
         }
 
-        .main-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(0, 242, 255, 0.3);
-            letter-spacing: 2px;
+        /* Навбар */
+        nav {
+            transform: translateY(0);
+            transition: 0.5s;
         }
 
-        /* --- NOTIFICATIONS --- */
-        #notify-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 999;
-        }
-
-        .notify {
-            background: rgba(0, 0, 0, 0.8);
-            border-left: 4px solid var(--accent);
-            padding: 15px 25px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            animation: slideIn 0.5s ease forwards;
-        }
-
-        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-
-        /* --- DASHBOARD --- */
-        .hidden { display: none; opacity: 0; }
-        
-        .status-badge {
-            background: rgba(0, 242, 255, 0.1);
-            color: var(--accent);
-            padding: 5px 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 800;
-        }
-
-        .dev-badge {
-            background: linear-gradient(45deg, #ffd700, #ffa500);
-            color: black;
-            padding: 5px 15px;
-            border-radius: 10px;
-            font-size: 12px;
-            font-weight: 900;
+        nav.hidden-nav {
+            transform: translateY(-100%);
         }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas-basic"></canvas>
-    <div id="notify-container"></div>
+    <div id="cursor"></div>
+    <canvas id="bg-canvas" class="fixed top-0 left-0 w-full h-full -z-10"></canvas>
 
-    <div id="authBox" class="glass-card">
-        <h1>WIND CLOUD</h1>
-        <div class="input-box">
-            <input type="text" id="user" placeholder="Username">
+    <nav id="navbar" class="fixed w-full z-50 px-6 py-4 transition-all">
+        <div class="max-w-7xl mx-auto flex justify-between items-center glass rounded-2xl px-8 py-4">
+            <div class="text-2xl font-extrabold tracking-tighter flex items-center gap-2">
+                <i class="bi bi-wind text-purple-500"></i> WIND
+            </div>
+            <div class="hidden md:flex gap-8 text-sm font-medium text-gray-400">
+                <a href="#home" class="hover:text-white transition">Home</a>
+                <a href="#features" class="hover:text-white transition">Features</a>
+                <a href="#stats" class="hover:text-white transition">Stats</a>
+                <a href="#store" class="hover:text-white transition">Store</a>
+            </div>
+            <div class="flex gap-4">
+                <button class="px-5 py-2 text-sm font-semibold hover:text-purple-400 transition">Login</button>
+                <button class="bg-white text-black px-6 py-2 rounded-xl text-sm font-bold hover:bg-purple-500 hover:text-white transition-all transform hover:scale-105">
+                    Get Started
+                </button>
+            </div>
         </div>
-        <div class="input-box">
-            <input type="password" id="pass" placeholder="Password">
-        </div>
-        <button class="main-btn" onclick="startAuth()">Authorize</button>
-        <p style="text-align:center; margin-top:20px; font-size:12px; opacity:0.5; cursor:pointer" onclick="toggleReg()">Create account?</p>
-    </div>
+    </nav>
 
-    <div id="dashBox" class="glass-card hidden">
-        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom:30px;">
-            <h1 style="margin:0; font-size:22px;">DASHBOARD</h1>
-            <div id="role-badge"></div>
+    <section id="home" class="relative min-h-screen flex items-center justify-center pt-20">
+        <div class="hero-glow"></div>
+        <div class="text-center z-10 px-4">
+            <div class="inline-block px-4 py-1 glass rounded-full text-xs font-bold text-purple-400 mb-6 border border-purple-500/30">
+                🚀 VERSION 4.0 IS LIVE
+            </div>
+            <h1 class="text-6xl md:text-8xl font-extrabold mb-8 tracking-tighter">
+                ELEVATE YOUR <br><span class="gradient-text">PERFORMANCE</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-gray-400 text-lg md:text-xl mb-12 font-light">
+                Самое передовое программное обеспечение, созданное для тех, кто не терпит компромиссов. 
+                Минимализм, скорость и мощь в каждом пакете.
+            </p>
+            <div class="flex flex-col md:flex-row gap-6 justify-center items-center">
+                <a href="#store" class="w-full md:w-auto bg-purple-600 px-10 py-4 rounded-2xl font-bold text-lg hover:bg-purple-700 transition shadow-lg shadow-purple-500/20">
+                    Purchase Now
+                </a>
+                <a href="#" class="w-full md:w-auto glass px-10 py-4 rounded-2xl font-bold text-lg hover:bg-white/10 transition">
+                    View Features
+                </a>
+            </div>
         </div>
+    </section>
 
-        <div style="background:rgba(255,255,255,0.03); padding:20px; border-radius:25px; margin-bottom:20px;">
-            <p style="font-size:12px; opacity:0.5">Welcome back,</p>
-            <h2 id="u-name" style="font-family:'Orbitron'">USER</h2>
-            <p id="u-expiry" style="font-size:13px; margin-top:5px; color:var(--accent)">Loading...</p>
+    <section id="features" class="py-32 px-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-20">
+                <h2 class="text-4xl font-bold mb-4">ENGINEERED FOR <span class="text-purple-500">EXCELLENCE</span></h2>
+                <div class="h-1 w-20 bg-purple-600"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="feature-card glass p-10 rounded-[2.5rem] relative overflow-hidden group">
+                    <div class="text-5xl mb-8 text-purple-500 group-hover:scale-110 transition-transform duration-500">
+                        <i class="bi bi-cpu"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Core Engine</h3>
+                    <p class="text-gray-400 font-light leading-relaxed">
+                        Полностью переписанное ядро на базе ASM-трансформаций. Нулевая задержка и максимальная оптимизация.
+                    </p>
+                </div>
+
+                <div class="feature-card glass p-10 rounded-[2.5rem] relative overflow-hidden group border-t-2 border-purple-500/50">
+                    <div class="text-5xl mb-8 text-cyan-500 group-hover:scale-110 transition-transform duration-500">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Security First</h3>
+                    <p class="text-gray-400 font-light leading-relaxed">
+                        Многоуровневая защита данных и уникальные алгоритмы обхода самых современных систем детекта.
+                    </p>
+                </div>
+
+                <div class="feature-card glass p-10 rounded-[2.5rem] relative overflow-hidden group">
+                    <div class="text-5xl mb-8 text-pink-500 group-hover:scale-110 transition-transform duration-500">
+                        <i class="bi bi-palette"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Visual Art</h3>
+                    <p class="text-gray-400 font-light leading-relaxed">
+                        Эстетика в каждой детали. Кастомизируемый интерфейс, который вдохновляет на новые победы.
+                    </p>
+                </div>
+            </div>
         </div>
+    </section>
 
-        <div id="dev-panel" class="hidden" style="border: 1px dashed var(--accent); padding:15px; border-radius:20px; margin-bottom:20px;">
-            <p style="font-size:10px; color:var(--accent); margin-bottom:10px;">GENERATOR</p>
-            <select id="gen-days" style="width:100%; background:#000; color:#fff; border:none; padding:10px; border-radius:10px; margin-bottom:10px;">
-                <option value="30">30 Days</option>
-                <option value="99999">Lifetime</option>
-            </select>
-            <button class="main-btn" style="padding:10px; font-size:12px;" onclick="generateKey()">Generate Key</button>
-            <div id="res-key" style="font-family:monospace; margin-top:10px; color:gold; text-align:center"></div>
+    <section id="stats" class="py-20 bg-white/5">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+            <div>
+                <div class="text-4xl font-extrabold text-purple-500 mb-2">15k+</div>
+                <div class="text-gray-500 uppercase text-xs tracking-widest">Active Users</div>
+            </div>
+            <div>
+                <div class="text-4xl font-extrabold text-white mb-2">99.9%</div>
+                <div class="text-gray-500 uppercase text-xs tracking-widest">Uptime</div>
+            </div>
+            <div>
+                <div class="text-4xl font-extrabold text-purple-500 mb-2">24/7</div>
+                <div class="text-gray-500 uppercase text-xs tracking-widest">Live Support</div>
+            </div>
+            <div>
+                <div class="text-4xl font-extrabold text-white mb-2">200+</div>
+                <div class="text-gray-500 uppercase text-xs tracking-widest">Unique Modules</div>
+            </div>
         </div>
+    </section>
 
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="promo-code" placeholder="License Key" style="margin-bottom:0">
-            <button class="main-btn" style="width:70px;" onclick="activateCode()"><i class="fa-solid fa-check"></i></button>
+    <footer class="py-20 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-10">
+            <div>
+                <div class="text-2xl font-black mb-4 tracking-tighter italic">WIND SOFTWARE</div>
+                <p class="text-gray-600 text-sm">© 2026 Developed with passion for the community.</p>
+            </div>
+            <div class="flex gap-10 text-gray-400">
+                <a href="#" class="hover:text-purple-500 transition">Discord</a>
+                <a href="#" class="hover:text-purple-500 transition">Telegram</a>
+                <a href="#" class="hover:text-purple-500 transition">Terms</a>
+            </div>
         </div>
-
-        <a href="https://github.com/WindClientFun/windclient/raw/main/launcher.exe" class="main-btn" style="display:block; text-align:center; text-decoration:none; margin-top:20px; background:white; color:black;">Download</a>
-        
-        <p onclick="location.reload()" style="text-align:center; font-size:10px; opacity:0.3; margin-top:20px; cursor:pointer">LOGOUT</p>
-    </div>
+    </footer>
 
     <script>
-        // --- ЧАСТИЦЫ ВЕТРА ---
-        function createWind() {
-            for(let i=0; i<30; i++) {
-                let p = document.createElement('div');
-                p.className = 'wind-particle';
-                p.style.width = Math.random() * 200 + 50 + 'px';
-                p.style.top = Math.random() * 100 + 'vh';
-                p.style.left = '-200px';
-                p.style.animationDelay = Math.random() * 5 + 's';
-                document.body.appendChild(p);
-            }
+        // Инициализация кастомного курсора
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', e => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Эффект появления при скролле (GSAP)
+        gsap.from(".feature-card", {
+            scrollTrigger: ".feature-card",
+            y: 100,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            ease: "power4.out"
+        });
+
+        // Простая 3D анимация фона на Three.js
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('bg-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        const geometry = new THREE.BufferGeometry();
+        const vertices = [];
+        for (let i = 0; i < 5000; i++) {
+            vertices.push(THREE.MathUtils.randFloatSpread(2000), THREE.MathUtils.randFloatSpread(2000), THREE.MathUtils.randFloatSpread(2000));
         }
-        createWind();
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+        const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x8b5cf6, size: 2 }));
+        scene.add(particles);
 
-        // --- УВЕДОМЛЕНИЯ ---
-        function notify(text) {
-            const container = document.getElementById('notify-container');
-            const n = document.createElement('div');
-            n.className = 'notify';
-            n.innerText = text;
-            container.appendChild(n);
-            setTimeout(() => n.remove(), 3000);
+        camera.position.z = 1000;
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y += 0.001;
+            particles.rotation.x += 0.0005;
+            renderer.render(scene, camera);
         }
+        animate();
 
-        // --- FIREBASE ЛОГИКА ---
-        const config = {
-            apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
-            databaseURL: "https://windclient111-default-rtdb.firebaseio.com",
-            projectId: "windclient111",
-        };
-        firebase.initializeApp(config);
-        const db = firebase.database();
-        let mode = 'login';
-        let currentUser = null;
-
-        function toggleReg() {
-            mode = mode === 'login' ? 'reg' : 'login';
-            notify("Switched to " + mode);
-        }
-
-        async function startAuth() {
-            const u = document.getElementById('user').value.trim();
-            const p = document.getElementById('pass').value.trim();
-            if(!u || !p) return notify("Fill fields!");
-
-            const ref = db.ref('users/' + u);
-            const snap = await ref.once('value');
-
-            if(mode === 'reg') {
-                if(snap.exists()) return notify("User exists!");
-                await ref.set({password: p, expiry: 0});
-                notify("Registered!");
-                goDash(u, {expiry: 0});
+        // Скрытие навбара при скролле
+        let lastScroll = 0;
+        window.addEventListener("scroll", () => {
+            const currentScroll = window.pageYOffset;
+            if (currentScroll > lastScroll && currentScroll > 100) {
+                document.getElementById('navbar').classList.add('hidden-nav');
             } else {
-                if(snap.exists() && snap.val().password === p) {
-                    notify("Logged in!");
-                    goDash(u, snap.val());
-                } else notify("Wrong data!");
+                document.getElementById('navbar').classList.remove('hidden-nav');
             }
-        }
-
-        function goDash(name, data) {
-            currentUser = name;
-            document.getElementById('authBox').classList.add('hidden');
-            const dash = document.getElementById('dashBox');
-            dash.classList.remove('hidden');
-            setTimeout(() => dash.style.opacity = '1', 50);
-            
-            document.getElementById('u-name').innerText = name.toUpperCase();
-            
-            if(name.toLowerCase() === 'developer') {
-                document.getElementById('dev-panel').classList.remove('hidden');
-                document.getElementById('role-badge').innerHTML = '<span class="dev-badge">DEVELOPER</span>';
-                document.getElementById('u-expiry').innerText = "SYSTEM ADMIN ACCESS";
-            } else {
-                document.getElementById('role-badge').innerHTML = '<span class="status-badge">USER</span>';
-                updateExpiryDisplay(data.expiry);
-            }
-        }
-
-        function updateExpiryDisplay(expiry) {
-            const el = document.getElementById('u-expiry');
-            if(!expiry || expiry < Date.now()) el.innerText = "No active subscription";
-            else if(expiry > 9000000000000) el.innerText = "Lifetime Subscription";
-            else el.innerText = "Expires: " + new Date(expiry).toLocaleDateString();
-        }
-
-        async function generateKey() {
-            const days = parseInt(document.getElementById('gen-days').value);
-            const key = "WIND-" + Math.random().toString(36).substr(2, 8).toUpperCase();
-            await db.ref('keys/' + key).set(days);
-            document.getElementById('res-key').innerText = key;
-            notify("Key generated!");
-        }
-
-        async function activateCode() {
-            const code = document.getElementById('promo-code').value.trim();
-            const snap = await db.ref('keys/' + code).once('value');
-            if(snap.exists()) {
-                const days = snap.val();
-                const userRef = db.ref('users/' + currentUser);
-                const uSnap = await userRef.once('value');
-                let cur = uSnap.val().expiry || Date.now();
-                if(cur < Date.now()) cur = Date.now();
-                
-                const added = days > 1000 ? 9999999999999 : cur + (days * 86400000);
-                await userRef.update({expiry: added});
-                await db.ref('keys/' + code).remove();
-                updateExpiryDisplay(added);
-                notify("Activated: " + days + " days!");
-            } else notify("Invalid key!");
-        }
+            lastScroll = currentScroll;
+        });
     </script>
 </body>
 </html>
