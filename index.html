@@ -2,250 +2,249 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND CORE v4</title>
+    <title>WIND | Elysium Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;800&family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    
     <style>
-        body { background: #050505; color: #eee; font-family: monospace; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        input, select { background: #111; border: 1px solid #333; color: #22c55e; padding: 8px; }
-        .btn { background: #222; border: 1px solid #444; padding: 10px 20px; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: #22c55e; color: #000; }
-        .dev-text { color: #8b5cf6; }
-        #chat-box { height: 300px; overflow-y: scroll; border: 1px solid #222; padding: 10px; background: #080808; }
+        :root { --accent: #00ff88; --bg: #030303; }
+        body { 
+            background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
+            overflow: hidden; user-select: none;
+        }
+        h1, h2, .syne { font-family: 'Syne', sans-serif; }
+
+        /* Эстетичный фон */
+        .orb {
+            position: fixed; width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, rgba(0,0,0,0) 70%);
+            border-radius: 50%; pointer-events: none; z-index: -1;
+            transition: 0.5s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+        }
+
+        /* Кнопки и Стекло */
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(30px) saturate(150%);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+        
+        .btn-main {
+            background: linear-gradient(135deg, var(--accent), #00ccff);
+            color: black; font-weight: 800; cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden;
+        }
+        .btn-main:hover { transform: scale(1.05) translateY(-3px); box-shadow: 0 15px 30px rgba(0,255,136,0.3); }
+        .btn-main:active { transform: scale(0.95); }
+
+        .input-field {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s; outline: none;
+        }
+        .input-field:focus { border-color: var(--accent); background: rgba(255,255,255,0.07); }
+
+        /* Дождь */
+        .drop {
+            position: fixed; background: linear-gradient(to bottom, transparent, #00ff88);
+            width: 1px; height: 60px; opacity: 0.2; pointer-events: none;
+            animation: fall linear infinite;
+        }
+        @keyframes fall { to { transform: translateY(110vh); } }
+
+        .tab-btn { opacity: 0.4; transition: 0.3s; cursor: pointer; font-size: 11px; letter-spacing: 2px; }
+        .tab-btn.active { opacity: 1; color: var(--accent); }
     </style>
 </head>
-<body class="p-4">
+<body>
 
-    <div class="flex justify-between border-b border-zinc-800 pb-2 mb-4 text-[12px]">
-        <div>SYSTEM: <span id="sys-status" class="text-yellow-500">IDLE</span></div>
-        <div id="user-display">GUEST</div>
-    </div>
+    <div class="orb" id="cursor-orb"></div>
+    <div id="rain-layer"></div>
 
-    <div id="auth-screen" class="max-w-sm mx-auto mt-20 border border-zinc-800 p-6">
-        <h2 class="mb-4 border-b border-zinc-800">IDENTITY_VERIFICATION</h2>
-        <input type="text" id="u-nick" placeholder="NICKNAME" class="w-full mb-2">
-        <input type="password" id="u-pass" placeholder="PASSWORD" class="w-full mb-4">
-        <div class="flex gap-2">
-            <button onclick="handleAuth('login')" class="btn flex-1">LOGIN</button>
-            <button onclick="handleAuth('reg')" class="btn flex-1 text-zinc-500">REGISTER</button>
+    <div id="toast" class="fixed top-10 left-1/2 -translate-x-1/2 glass px-10 py-4 rounded-full z-[1000] opacity-0 transition-all duration-700 pointer-events-none text-sm font-bold"></div>
+
+    <div id="auth-page" class="min-h-screen flex items-center justify-center p-6">
+        <div class="glass p-12 rounded-[4rem] w-full max-w-sm text-center border-t-2 border-emerald-500/20">
+            <h1 class="text-6xl font-black italic mb-2 tracking-tighter" style="text-shadow: 0 0 30px var(--accent)">WIND</h1>
+            <p class="text-[10px] text-gray-500 uppercase tracking-[0.3em] mb-12">Universal Ecosystem</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="u-nick" placeholder="Username" class="input-field w-full p-5 rounded-3xl text-sm">
+                <input type="password" id="u-pass" placeholder="Password" class="input-field w-full p-5 rounded-3xl text-sm">
+                <button onclick="authAction()" class="btn-main w-full py-5 rounded-3xl text-xs uppercase tracking-widest mt-6">Authorize</button>
+            </div>
         </div>
     </div>
 
-    <div id="main-app" class="hidden">
-        <nav class="flex gap-4 mb-6 border-b border-zinc-800 pb-2">
-            <button onclick="tab('main')" class="hover:text-green-500">[MAIN]</button>
-            <button onclick="tab('chat')" class="hover:text-green-500">[CHAT]</button>
-            <button onclick="tab('admin')" id="admin-nav" class="hidden dev-text">[MASTER_CELL]</button>
-            <button onclick="logout()" class="text-red-800 ml-auto">[EXIT]</button>
+    <div id="main-ui" class="hidden min-h-screen flex flex-col items-center pt-24 px-6">
+        
+        <nav class="glass px-10 py-5 rounded-full flex gap-12 mb-20">
+            <div onclick="tab('home')" id="t-home" class="tab-btn active">CORE</div>
+            <div onclick="tab('shop')" id="t-shop" class="tab-btn">PRODUCTS</div>
+            <div onclick="tab('chat')" id="t-chat" class="tab-btn">COMMUNITY</div>
+            <div onclick="tab('dev')" id="t-dev" class="tab-btn hidden dev-text">MASTER</div>
         </nav>
 
-        <div id="tab-main" class="tab-content active space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="border border-zinc-800 p-4">
-                    <h3>> USER_DATA</h3>
-                    <p>RANK: <span id="u-rank">Member</span></p>
-                    <p>SUBSCRIPTION: <span id="u-sub">None</span></p>
-                    <p>UID: <span id="u-id">0</span></p>
-                </div>
-                <div class="border border-zinc-800 p-4">
-                    <h3>> KEY_ACTIVATION</h3>
-                    <input type="text" id="k-input" placeholder="WIND-XXXX" class="w-full mb-2">
-                    <button onclick="activateKey()" class="btn w-full text-xs">REDEEM</button>
+        <div id="p-home" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 glass p-12 rounded-[4rem]">
+                <h2 class="text-5xl font-extrabold syne mb-6">Hello, <span id="display-name" class="text-emerald-400">User</span></h2>
+                <p class="text-gray-500 leading-loose mb-10">Добро пожаловать в обновленную версию WIND. Мы оптимизировали все процессы, чтобы ваш опыт был максимально плавным.</p>
+                <div class="flex gap-4">
+                    <input type="text" id="k-redeem" placeholder="WIND-XXXX-XXXX" class="flex-1 input-field p-4 rounded-3xl">
+                    <button onclick="redeem()" class="btn-main px-10 rounded-3xl text-[10px]">REDEEM</button>
                 </div>
             </div>
             
-            <div class="border border-zinc-800 p-4">
-                <h3>> QUICK_ACTIONS</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-[10px]">
-                    <button onclick="copyHWID()" class="btn">COPY HWID</button>
-                    <button onclick="checkUpdate()" class="btn">CHECK UPDATE</button>
-                    <button onclick="resetHwid()" class="btn">HWID RESET</button>
-                    <button onclick="getLogs()" class="btn">MY LOGS</button>
+            <div class="glass p-8 rounded-[4rem] flex flex-col items-center justify-center text-center">
+                <div class="w-24 h-24 rounded-full border-2 border-emerald-500/20 flex items-center justify-center mb-6 animate-pulse">
+                    <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">🎵</div>
                 </div>
+                <p id="m-status" class="text-xs font-bold text-emerald-400 mb-6">Lofi Zen Playing</p>
+                <button onclick="toggleMusic()" class="glass px-8 py-3 rounded-full text-[10px] hover:bg-white/5 transition">PLAY/PAUSE</button>
             </div>
         </div>
 
-        <div id="tab-chat" class="tab-content">
-            <div id="chat-box" class="mb-2 text-sm font-mono"></div>
-            <div class="flex gap-2">
-                <input type="text" id="chat-in" class="flex-1" placeholder="Type message...">
-                <button onclick="sendMsg()" class="btn">SEND</button>
-            </div>
-        </div>
-
-        <div id="tab-admin" class="tab-content space-y-4">
-            <h2 class="dev-text italic">// MASTER CONTROL PANEL</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="border border-purple-900/30 p-4">
-                    <p class="text-xs dev-text mb-2">GENERATE LICENSE</p>
-                    <select id="k-type" class="w-full mb-2">
-                        <option value="Lifetime">Lifetime</option>
-                        <option value="30D">30 Days</option>
-                    </select>
-                    <button onclick="genKey()" class="btn w-full text-[10px]">CREATE KEY</button>
-                </div>
-                <div class="border border-purple-900/30 p-4">
-                    <p class="text-xs dev-text mb-2">MANAGE USER</p>
-                    <input type="text" id="t-user" placeholder="Nickname" class="w-full mb-2 text-xs">
-                    <button onclick="setRank('Admin')" class="btn w-full text-[10px] mb-1">GIVE ADMIN</button>
-                    <button onclick="deleteUser()" class="btn w-full text-[10px] text-red-500">BAN USER</button>
-                </div>
-                <div class="border border-purple-900/30 p-4">
-                    <p class="text-xs dev-text mb-2">GLOBAL SETTINGS</p>
-                    <button onclick="clearChat()" class="btn w-full text-[10px] mb-1">CLEAR CHAT</button>
-                    <button onclick="toggleMaintenance()" class="btn w-full text-[10px]">MAINTENANCE</button>
-                </div>
-            </div>
-            <div class="border border-purple-900/30 p-4">
-                <p class="text-xs dev-text mb-2">LIVE LOGS</p>
-                <div id="admin-logs" class="h-32 overflow-y-auto text-[10px] text-zinc-500 italic"></div>
+        <div id="p-chat" class="hidden w-full max-w-4xl glass rounded-[4rem] flex flex-col overflow-hidden h-[600px]">
+            <div class="p-8 border-b border-white/5 font-black text-xs tracking-widest uppercase opacity-40">Live Feed</div>
+            <div id="chat-messages" class="flex-1 p-10 overflow-y-auto space-y-6 text-sm"></div>
+            <div class="p-6 bg-white/5 flex gap-4">
+                <input type="text" id="chat-msg" placeholder="Write something..." class="flex-1 input-field p-4 rounded-full">
+                <button onclick="sendMsg()" class="btn-main w-14 h-14 rounded-full flex items-center justify-center">></button>
             </div>
         </div>
     </div>
 
+    <audio id="bg-m" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio>
+    <audio id="s-ok" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
     <script>
-        const config = {
+        // Инициализация (Твоя база)
+        const firebaseConfig = {
             apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
             authDomain: "wind-client-b6c33.firebaseapp.com",
             databaseURL: "https://wind-client-b6c33-default-rtdb.firebaseio.com",
             projectId: "wind-client-b6c33"
         };
-        firebase.initializeApp(config);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let me = null;
-        let myData = null;
+        let user = null;
 
-        // --- АВТОРИЗАЦИЯ (РАБОЧАЯ) ---
-        function handleAuth(mode) {
+        // Эстетичное уведомление
+        function notify(text) {
+            const t = document.getElementById('toast');
+            t.innerText = text;
+            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
+            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -20px)'; }, 3000);
+        }
+
+        // --- AUTH (ЖЕЛЕЗОБЕТОННЫЙ) ---
+        function authAction() {
             const u = document.getElementById('u-nick').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return alert("EMPTY_FIELDS");
+            if(!u || !p) return notify("Заполни данные!");
 
-            const ref = db.ref('users/' + u);
-            ref.once('value').then(snap => {
-                if(mode === 'reg') {
-                    if(snap.exists()) return alert("USER_EXISTS");
-                    const newUser = { password: p, rank: 'Member', sub: 'None', hwid: Math.random().toString(36).slice(2) };
-                    ref.set(newUser).then(() => alert("REGISTERED. PLEASE LOGIN."));
-                } else {
-                    if(snap.exists() && snap.val().password === p) {
-                        me = u;
-                        myData = snap.val();
-                        saveSession();
-                        enterApp();
-                    } else alert("INVALID_CREDENTIALS");
-                }
-            });
-        }
-
-        function enterApp() {
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('sys-status').innerText = "ONLINE";
-            document.getElementById('sys-status').className = "text-green-500";
-            document.getElementById('user-display').innerText = me.toUpperCase();
-            
-            document.getElementById('u-rank').innerText = myData.rank;
-            document.getElementById('u-sub').innerText = myData.sub;
-            document.getElementById('u-id').innerText = myData.hwid || "N/A";
-
-            if(me.toLowerCase() === 'developer' || myData.rank === 'Admin') {
-                document.getElementById('admin-nav').classList.remove('hidden');
-            }
-            syncData();
-            loadChat();
-        }
-
-        function saveSession() { localStorage.setItem('wind_user', me); localStorage.setItem('wind_pass', myData.password); }
-        window.onload = () => {
-            const savedU = localStorage.getItem('wind_user');
-            const savedP = localStorage.getItem('wind_pass');
-            if(savedU) {
-                document.getElementById('u-nick').value = savedU;
-                document.getElementById('u-pass').value = savedP;
-                handleAuth('login');
-            }
-        };
-
-        // --- РЕАЛЬНЫЕ ФУНКЦИИ ---
-        function tab(name) {
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            document.getElementById('tab-' + name).classList.add('active');
-        }
-
-        function syncData() {
-            db.ref('users/' + me).on('value', s => {
+            db.ref('users/' + u).once('value', s => {
                 if(s.exists()) {
-                    document.getElementById('u-sub').innerText = s.val().sub;
-                    document.getElementById('u-rank').innerText = s.val().rank;
+                    if(s.val().password === p) startApp(u, s.val());
+                    else notify("Неверный пароль!");
+                } else {
+                    db.ref('users/' + u).set({ password: p, rank: 'Member', sub: 'None' });
+                    notify("Аккаунт создан! Входим...");
+                    setTimeout(() => authAction(), 1000);
                 }
             });
         }
 
+        function startApp(nick, data) {
+            user = { nick, ...data };
+            localStorage.setItem('wind_session', JSON.stringify(user));
+            
+            document.getElementById('auth-page').style.display = 'none';
+            document.getElementById('main-ui').classList.remove('hidden');
+            document.getElementById('display-name').innerText = nick;
+            
+            if(nick.toLowerCase() === 'developer') document.getElementById('t-dev').classList.remove('hidden');
+            
+            loadChat();
+            document.getElementById('s-ok').play();
+        }
+
+        // --- NAVIGATION ---
+        function tab(id) {
+            ['home', 'shop', 'chat', 'dev'].forEach(t => {
+                const p = document.getElementById('p-' + t);
+                const b = document.getElementById('t-' + t);
+                if(p) p.classList.add('hidden');
+                if(b) b.classList.remove('active');
+            });
+            document.getElementById('p-' + id).classList.remove('hidden');
+            document.getElementById('t-' + id).classList.add('active');
+        }
+
+        // --- CHAT ---
         function sendMsg() {
-            const text = document.getElementById('chat-in').value;
-            if(!text) return;
-            db.ref('chat').push({ u: me, t: text, r: myData.rank, time: Date.now() });
-            document.getElementById('chat-in').value = "";
+            const txt = document.getElementById('chat-msg').value;
+            if(!txt) return;
+            db.ref('chat').push({ u: user.nick, m: txt, r: user.rank });
+            document.getElementById('chat-msg').value = "";
         }
 
         function loadChat() {
-            db.ref('chat').limitToLast(50).on('value', s => {
-                const box = document.getElementById('chat-box');
+            db.ref('chat').limitToLast(30).on('value', s => {
+                const box = document.getElementById('chat-messages');
                 box.innerHTML = "";
                 s.forEach(m => {
-                    const color = m.val().r === 'Admin' ? '#8b5cf6' : '#22c55e';
-                    box.innerHTML += `<div><span style="color:${color}">[${m.val().u}]</span>: ${m.val().t}</div>`;
+                    const isDev = m.val().r === 'Admin' || m.val().u === 'developer';
+                    box.innerHTML += `<div>
+                        <span class="font-black text-[10px] tracking-tighter ${isDev ? 'text-emerald-400' : 'text-gray-600'}">${m.val().u.toUpperCase()}</span>
+                        <p class="mt-1 opacity-80">${m.val().m}</p>
+                    </div>`;
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        function activateKey() {
-            const k = document.getElementById('k-input').value.trim();
-            db.ref('keys/' + k).once('value', s => {
-                if(s.exists()) {
-                    db.ref('users/' + me).update({ sub: s.val().type });
-                    db.ref('keys/' + k).remove();
-                    alert("SUB_ACTIVATED: " + s.val().type);
-                } else alert("INVALID_KEY");
-            });
+        // --- EFFECTS ---
+        // Следящий свет
+        document.addEventListener('mousemove', (e) => {
+            const orb = document.getElementById('cursor-orb');
+            orb.style.left = (e.clientX - 300) + 'px';
+            orb.style.top = (e.clientY - 300) + 'px';
+        });
+
+        // Дождь
+        for(let i=0; i<30; i++) {
+            const d = document.createElement('div');
+            d.className = 'drop';
+            d.style.left = Math.random() * 100 + 'vw';
+            d.style.animationDuration = Math.random() * 0.5 + 0.5 + 's';
+            document.getElementById('rain-layer').appendChild(d);
         }
 
-        // --- АДМИН ПАНЕЛЬ (15 функций в логике) ---
-        function genKey() {
-            const key = "WIND-" + Math.random().toString(36).substring(2,10).toUpperCase();
-            db.ref('keys/' + key).set({ type: document.getElementById('k-type').value });
-            adminLog("Created Key: " + key);
+        // Музыка
+        let playing = false;
+        function toggleMusic() {
+            const m = document.getElementById('bg-m');
+            if(!playing) m.play(); else m.pause();
+            playing = !playing;
+            document.getElementById('m-status').innerText = playing ? "WIND ZEN: ON" : "WIND ZEN: OFF";
         }
 
-        function setRank(r) {
-            const t = document.getElementById('t-user').value;
-            db.ref('users/' + t).update({ rank: r });
-            adminLog("Rank " + r + " given to " + t);
+        // Авто-вход
+        window.onload = () => {
+            const saved = localStorage.getItem('wind_session');
+            if(saved) {
+                const d = JSON.parse(saved);
+                document.getElementById('u-nick').value = d.nick;
+                document.getElementById('u-pass').value = d.password;
+                authAction();
+            }
         }
-
-        function adminLog(msg) {
-            const l = document.getElementById('admin-logs');
-            l.innerHTML = `> ${msg}<br>` + l.innerHTML;
-        }
-
-        function deleteUser() {
-            const t = document.getElementById('t-user').value;
-            if(confirm("BAN " + t + "?")) db.ref('users/' + t).remove();
-        }
-
-        function clearChat() { db.ref('chat').remove(); }
-        
-        function logout() { localStorage.clear(); location.reload(); }
-
-        // Доп. утилиты
-        function copyHWID() { navigator.clipboard.writeText(myData.hwid); alert("COPIED"); }
-        function checkUpdate() { alert("YOU ARE ON VERSION 4.0.0 (LATEST)"); }
     </script>
 </body>
 </html>
