@@ -1,134 +1,112 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>WIND | Developer Entity</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-    <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020202; color: white; overflow-x: hidden; }
-        .glass { background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.05); }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .accent-border { border-left: 4px solid #8b5cf6; }
-        input { background: rgba(255,255,255,0.03) !important; border: 1px solid rgba(255,255,255,0.1) !important; color: white !important; }
-        .btn-purple { background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); transition: 0.3s; }
-        .btn-purple:hover { opacity: 0.9; transform: translateY(-2px); box-shadow: 0 5px 20px rgba(139, 92, 246, 0.4); }
-    </style>
-</head>
-<body>
+<section id="auth-section" class="py-20 px-6 max-w-md mx-auto">
+    <div class="glass p-8 rounded-[2.5rem] border border-white/10">
+        <div class="flex justify-center gap-4 mb-8">
+            <button onclick="switchTab('login')" id="tab-login" class="text-purple-500 font-bold border-b-2 border-purple-500 pb-1">Вход</button>
+            <button onclick="switchTab('register')" id="tab-register" class="text-gray-500 hover:text-white transition">Регистрация</button>
+        </div>
 
-    <div id="login-screen" class="fixed inset-0 z-[2000] bg-black flex items-center justify-center">
-        <div class="glass p-10 rounded-[2.5rem] w-full max-w-md text-center border border-white/10">
-            <i class="bi bi-shield-lock text-5xl text-purple-500 mb-6 inline-block"></i>
-            <h2 class="text-3xl font-black mb-2">AUTH REQUIRED</h2>
-            <p class="text-gray-500 mb-8 text-sm">Введите никнейм для доступа к системе</p>
-            <input type="text" id="auth-nick" placeholder="Username" class="w-full p-4 rounded-2xl mb-4 outline-none">
-            <button onclick="checkAuth()" class="w-full btn-purple p-4 rounded-2xl font-bold">ACCESS SYSTEM</button>
+        <div id="form-login" class="space-y-4">
+            <input type="email" id="log-email" placeholder="Email" class="w-full p-4 rounded-2xl outline-none">
+            <input type="password" id="log-pass" placeholder="Пароль" class="w-full p-4 rounded-2xl outline-none">
+            <button onclick="signIn()" class="w-full btn-purple py-4 rounded-2xl font-bold">ВОЙТИ</button>
+        </div>
+
+        <div id="form-register" class="hidden space-y-4">
+            <input type="text" id="reg-nick" placeholder="Никнейм в чите" class="w-full p-4 rounded-2xl outline-none">
+            <input type="email" id="reg-email" placeholder="Email" class="w-full p-4 rounded-2xl outline-none">
+            <input type="password" id="reg-pass" placeholder="Пароль" class="w-full p-4 rounded-2xl outline-none">
+            <button onclick="signUp()" class="w-full btn-purple py-4 rounded-2xl font-bold">СОЗДАТЬ АККАУНТ</button>
         </div>
     </div>
+</section>
 
-    <div id="main-ui" class="opacity-0 pointer-events-none transition-all duration-700">
-        
-        <div class="fixed top-6 left-6 z-[100] w-72 glass p-6 rounded-[2rem] accent-border shadow-2xl">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span class="text-[10px] font-bold tracking-widest text-gray-400 uppercase">User Management</span>
-            </div>
-            <input type="text" id="target-user" placeholder="Имя пользователя..." class="w-full p-3 rounded-xl text-xs mb-3 outline-none">
-            <div class="grid grid-cols-2 gap-2">
-                <button onclick="setRole('MODERATOR')" class="bg-blue-500/10 text-blue-400 p-2 rounded-lg text-[10px] font-bold hover:bg-blue-500 hover:text-white transition">MODER</button>
-                <button onclick="setRole('ADMIN')" class="bg-red-500/10 text-red-400 p-2 rounded-lg text-[10px] font-bold hover:bg-red-500 hover:text-white transition">ADMIN</button>
-            </div>
-        </div>
+<script>
+    // ТВОЙ КОНФИГ С АПИ КЛЮЧОМ
+    const firebaseConfig = {
+        apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
+        authDomain: "wind-client-b6c33.firebaseapp.com", // Проверь этот домен в консоли Firebase
+        databaseURL: "https://wind-client-b6c33-default-rtdb.firebaseio.com",
+        projectId: "wind-client-b6c33",
+        storageBucket: "wind-client-b6c33.appspot.com",
+        messagingSenderId: "563829471023",
+        appId: "1:563829471023:web:7f6a8b9c0d1e2f3a"
+    };
 
-        <div class="min-h-screen flex items-center justify-center p-6">
-            <div class="w-full max-w-4xl glass p-12 rounded-[3rem] relative">
-                <div class="absolute -top-10 -right-10 w-40 h-40 bg-purple-600/20 blur-[80px]"></div>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК
+    function switchTab(type) {
+        if(type === 'login') {
+            document.getElementById('form-login').classList.remove('hidden');
+            document.getElementById('form-register').classList.add('hidden');
+            document.getElementById('tab-login').className = "text-purple-500 font-bold border-b-2 border-purple-500 pb-1";
+            document.getElementById('tab-register').className = "text-gray-500 hover:text-white transition";
+        } else {
+            document.getElementById('form-login').classList.add('hidden');
+            document.getElementById('form-register').classList.remove('hidden');
+            document.getElementById('tab-register').className = "text-purple-500 font-bold border-b-2 border-purple-500 pb-1";
+            document.getElementById('tab-login').className = "text-gray-500 hover:text-white transition";
+        }
+    }
+
+    // РЕГИСТРАЦИЯ
+    function signUp() {
+        const email = document.getElementById('reg-email').value;
+        const pass = document.getElementById('reg-pass').value;
+        const nick = document.getElementById('reg-nick').value;
+
+        auth.createUserWithEmailAndPassword(email, pass)
+            .then((userCredential) => {
+                const user = userCredential.user;
+                // Сохраняем данные юзера в базу
+                db.ref('users/' + user.uid).set({
+                    username: nick,
+                    email: email,
+                    rank: 'User',
+                    subscription: 'None'
+                });
+                alert("Аккаунт создан! Теперь войдите.");
+                switchTab('login');
+            })
+            .catch((error) => alert(error.message));
+    }
+
+    // ВХОД
+    function signIn() {
+        const email = document.getElementById('log-email').value;
+        const pass = document.getElementById('log-pass').value;
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .then((userCredential) => {
+                const user = userCredential.user;
                 
-                <div class="flex flex-col md:flex-row justify-between items-start gap-12">
-                    <div class="flex-1">
-                        <h1 class="text-5xl font-black mb-4 italic tracking-tighter">DEV <span class="text-purple-500">PORTAL</span></h1>
-                        <p class="text-gray-500 mb-10">Управление лицензиями и привилегиями Wind Client v4.0</p>
-                        
-                        <div class="space-y-6">
-                            <div>
-                                <label class="text-xs font-bold text-gray-400 mb-3 block uppercase">Выберите план подписки</label>
-                                <select id="key-type" class="w-full p-4 glass rounded-2xl outline-none text-sm cursor-pointer border border-white/10">
-                                    <option value="30 DAYS">30 Дней (Trial)</option>
-                                    <option value="183 DAYS">183 Дня (Half-Year)</option>
-                                    <option value="360 DAYS">360 Дней (Year)</option>
-                                    <option value="LIFETIME">Навсегда (Lifetime)</option>
-                                    <option value="LIFETIME PREMIUM">Навсегда Premium</option>
-                                    <option value="PREMIUM+">Premium+</option>
-                                    <option value="LIFETIME PREMIUM+">Навсегда Premium+</option>
-                                </select>
-                            </div>
-                            <button onclick="generateKey()" class="w-full btn-purple py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3">
-                                <i class="bi bi-key-fill"></i> СГЕНЕРИРОВАТЬ КЛЮЧ
-                            </button>
-                        </div>
-                    </div>
+                // ПРОВЕРКА НА ДЕВЕЛОПЕРА
+                // Если твой email, например, dev@wind.com
+                if (email === "developer@wind.com") { // Укажи тут свой email
+                    document.getElementById('dev-dashboard').classList.remove('hidden');
+                    alert("Welcome, Creator.");
+                } else {
+                    alert("Успешный вход! Личный кабинет в разработке.");
+                    // Тут можно перенаправить на страницу с подпиской юзера
+                }
+            })
+            .catch((error) => alert(error.message));
+    }
 
-                    <div class="w-full md:w-80 space-y-4">
-                        <div class="glass p-6 rounded-[2rem] border-white/5 h-[350px] flex flex-col">
-                            <h3 class="text-xs font-bold text-gray-500 mb-4 uppercase">Console Output</h3>
-                            <div id="console" class="mono text-[11px] overflow-y-auto flex-1 space-y-2 text-green-500/80">
-                                <p>> System initialized...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const DB_LOGS = "Wind_Dev_Logs";
-
-        // Простая авторизация "Только для Developer"
-        function checkAuth() {
-            const nick = document.getElementById('auth-nick').value.trim().toLowerCase();
-            if (nick === 'developer') {
-                gsap.to("#login-screen", { opacity: 0, scale: 1.1, duration: 0.8, onComplete: () => {
-                    document.getElementById('login-screen').remove();
-                    document.getElementById('main-ui').classList.remove('opacity-0', 'pointer-events-none');
-                    logToConsole("Welcome back, Master Developer.");
-                }});
-            } else {
-                alert("ACCESS DENIED: Insufficient permissions.");
-            }
-        }
-
-        function logToConsole(msg) {
-            const con = document.getElementById('console');
-            const p = document.createElement('p');
-            p.innerHTML = `<span class="text-gray-600">[${new Date().toLocaleTimeString()}]</span> ${msg}`;
-            con.appendChild(p);
-            con.scrollTop = con.scrollHeight;
-        }
-
-        // Выдача прав (Левое верхнее меню)
-        function setRole(role) {
-            const user = document.getElementById('target-user').value;
-            if (!user) return alert("Введите имя цели!");
-            logToConsole(`User <b class="text-white">${user}</b> elevated to <b class="text-purple-400">${role}</b>`);
-            alert(`Успешно! Пользователю ${user} выданы права ${role}`);
-        }
-
-        // Генерация ключей
-        function generateKey() {
-            const type = document.getElementById('key-type').value;
-            const key = "WIND-" + Math.random().toString(36).substring(2, 10).toUpperCase() + "-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-            
-            logToConsole(`Key Generated: <span class="text-white">${key}</span>`);
-            logToConsole(`Plan: <span class="text-yellow-500">${type}</span>`);
-            
-            // Копирование в буфер
-            navigator.clipboard.writeText(key);
-            alert(`Ключ на ${type} сгенерирован и скопирован:\n${key}`);
-        }
-    </script>
-</body>
-</html>
+    // ГЕНЕРАЦИЯ КЛЮЧА (Запись в Firebase)
+    function generateKey() {
+        const type = document.getElementById('key-type').value;
+        const key = "WIND-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+        
+        db.ref('license_keys/' + key).set({
+            plan: type,
+            owner: "none",
+            status: "unused"
+        }).then(() => {
+            alert("Ключ создан: " + key);
+            console.log("Key saved to Firebase");
+        });
+    }
+</script>
