@@ -2,127 +2,131 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND | Elysium Edition</title>
+    <title>WIND | NEBULA SYSTEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;800&family=Inter:wght@300;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Montserrat:wght@300;900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --accent: #00ff88; --bg: #030303; }
-        body { 
-            background: var(--bg); color: white; font-family: 'Inter', sans-serif; 
-            overflow: hidden; user-select: none;
-        }
-        h1, h2, .syne { font-family: 'Syne', sans-serif; }
+        :root { --main: #00ffcc; --second: #7000ff; --bg: #020205; }
+        body { background: var(--bg); color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; margin: 0; }
+        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
 
-        /* Эстетичный фон */
-        .orb {
-            position: fixed; width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(0,255,136,0.07) 0%, rgba(0,0,0,0) 70%);
-            border-radius: 50%; pointer-events: none; z-index: -1;
-            transition: 0.5s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+        /* Эффект свечения курсора */
+        #cursor-glow {
+            position: fixed; width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(0,255,204,0.15) 0%, rgba(112,0,255,0.05) 50%, transparent 70%);
+            border-radius: 50%; pointer-events: none; z-index: 0; transform: translate(-50%, -50%);
         }
 
-        /* Кнопки и Стекло */
-        .glass {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(30px) saturate(150%);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-        }
-        
-        .btn-main {
-            background: linear-gradient(135deg, var(--accent), #00ccff);
-            color: black; font-weight: 800; cursor: pointer;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Неоновые карточки */
+        .nebula-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             position: relative; overflow: hidden;
+            transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
-        .btn-main:hover { transform: scale(1.05) translateY(-3px); box-shadow: 0 15px 30px rgba(0,255,136,0.3); }
-        .btn-main:active { transform: scale(0.95); }
-
-        .input-field {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s; outline: none;
+        .nebula-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(transparent, var(--main), transparent, var(--second), transparent);
+            animation: rotate 6s linear infinite; opacity: 0.3; z-index: -1;
         }
-        .input-field:focus { border-color: var(--accent); background: rgba(255,255,255,0.07); }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-        /* Дождь */
-        .drop {
-            position: fixed; background: linear-gradient(to bottom, transparent, #00ff88);
-            width: 1px; height: 60px; opacity: 0.2; pointer-events: none;
-            animation: fall linear infinite;
+        .btn-hyper {
+            background: linear-gradient(90deg, var(--main), var(--second));
+            font-weight: 900; letter-spacing: 2px; color: black;
+            box-shadow: 0 0 30px rgba(0,255,204,0.4);
+            transition: 0.4s; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
         }
-        @keyframes fall { to { transform: translateY(110vh); } }
+        .btn-hyper:hover { transform: scale(1.1) skew(-5deg); box-shadow: 0 0 60px var(--main); }
 
-        .tab-btn { opacity: 0.4; transition: 0.3s; cursor: pointer; font-size: 11px; letter-spacing: 2px; }
-        .tab-btn.active { opacity: 1; color: var(--accent); }
+        .glitch-text { font-family: 'Syncopate', sans-serif; text-transform: uppercase; }
+        
+        /* Плавные табы */
+        .page { animation: slideUp 1s ease-out; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(10px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+
+        input { background: rgba(0,0,0,0.5) !important; border: 1px solid var(--main) !important; color: var(--main) !important; text-align: center; }
     </style>
 </head>
 <body>
 
-    <div class="orb" id="cursor-orb"></div>
-    <div id="rain-layer"></div>
+    <canvas id="canvas"></canvas>
+    <div id="cursor-glow"></div>
 
-    <div id="toast" class="fixed top-10 left-1/2 -translate-x-1/2 glass px-10 py-4 rounded-full z-[1000] opacity-0 transition-all duration-700 pointer-events-none text-sm font-bold"></div>
-
-    <div id="auth-page" class="min-h-screen flex items-center justify-center p-6">
-        <div class="glass p-12 rounded-[4rem] w-full max-w-sm text-center border-t-2 border-emerald-500/20">
-            <h1 class="text-6xl font-black italic mb-2 tracking-tighter" style="text-shadow: 0 0 30px var(--accent)">WIND</h1>
-            <p class="text-[10px] text-gray-500 uppercase tracking-[0.3em] mb-12">Universal Ecosystem</p>
-            
-            <div class="space-y-4">
-                <input type="text" id="u-nick" placeholder="Username" class="input-field w-full p-5 rounded-3xl text-sm">
-                <input type="password" id="u-pass" placeholder="Password" class="input-field w-full p-5 rounded-3xl text-sm">
-                <button onclick="authAction()" class="btn-main w-full py-5 rounded-3xl text-xs uppercase tracking-widest mt-6">Authorize</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="main-ui" class="hidden min-h-screen flex flex-col items-center pt-24 px-6">
+    <div id="ui-wrapper" class="relative z-10 h-screen flex flex-col items-center justify-center p-6">
         
-        <nav class="glass px-10 py-5 rounded-full flex gap-12 mb-20">
-            <div onclick="tab('home')" id="t-home" class="tab-btn active">CORE</div>
-            <div onclick="tab('shop')" id="t-shop" class="tab-btn">PRODUCTS</div>
-            <div onclick="tab('chat')" id="t-chat" class="tab-btn">COMMUNITY</div>
-            <div onclick="tab('dev')" id="t-dev" class="tab-btn hidden dev-text">MASTER</div>
-        </nav>
-
-        <div id="p-home" class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div class="lg:col-span-2 glass p-12 rounded-[4rem]">
-                <h2 class="text-5xl font-extrabold syne mb-6">Hello, <span id="display-name" class="text-emerald-400">User</span></h2>
-                <p class="text-gray-500 leading-loose mb-10">Добро пожаловать в обновленную версию WIND. Мы оптимизировали все процессы, чтобы ваш опыт был максимально плавным.</p>
-                <div class="flex gap-4">
-                    <input type="text" id="k-redeem" placeholder="WIND-XXXX-XXXX" class="flex-1 input-field p-4 rounded-3xl">
-                    <button onclick="redeem()" class="btn-main px-10 rounded-3xl text-[10px]">REDEEM</button>
-                </div>
-            </div>
+        <div id="auth-page" class="nebula-card p-16 rounded-[4rem] w-full max-w-lg text-center">
+            <h1 class="glitch-text text-7xl mb-2 tracking-tighter" style="color: var(--main); text-shadow: 0 0 20px var(--main);">WIND</h1>
+            <p class="text-[10px] tracking-[1em] mb-12 opacity-50">ULTIMATE CLIENT ECOSYSTEM</p>
             
-            <div class="glass p-8 rounded-[4rem] flex flex-col items-center justify-center text-center">
-                <div class="w-24 h-24 rounded-full border-2 border-emerald-500/20 flex items-center justify-center mb-6 animate-pulse">
-                    <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">🎵</div>
-                </div>
-                <p id="m-status" class="text-xs font-bold text-emerald-400 mb-6">Lofi Zen Playing</p>
-                <button onclick="toggleMusic()" class="glass px-8 py-3 rounded-full text-[10px] hover:bg-white/5 transition">PLAY/PAUSE</button>
+            <div class="space-y-6">
+                <input type="text" id="u-nick" placeholder="NICKNAME" class="w-full p-5 rounded-2xl font-bold">
+                <input type="password" id="u-pass" placeholder="PASSWORD" class="w-full p-5 rounded-2xl font-bold">
+                <button onclick="auth()" class="btn-hyper w-full py-6 rounded-xl mt-4">INITIALIZE SYSTEM</button>
             </div>
         </div>
 
-        <div id="p-chat" class="hidden w-full max-w-4xl glass rounded-[4rem] flex flex-col overflow-hidden h-[600px]">
-            <div class="p-8 border-b border-white/5 font-black text-xs tracking-widest uppercase opacity-40">Live Feed</div>
-            <div id="chat-messages" class="flex-1 p-10 overflow-y-auto space-y-6 text-sm"></div>
-            <div class="p-6 bg-white/5 flex gap-4">
-                <input type="text" id="chat-msg" placeholder="Write something..." class="flex-1 input-field p-4 rounded-full">
-                <button onclick="sendMsg()" class="btn-main w-14 h-14 rounded-full flex items-center justify-center">></button>
+        <div id="main-app" class="hidden w-full max-w-7xl h-full py-10 flex flex-col">
+            <nav class="flex justify-between items-center mb-16">
+                <div class="glitch-text text-2xl border-l-4 border-cyan-400 pl-4">WIND//OS</div>
+                <div class="flex gap-10 text-[10px] font-black tracking-widest">
+                    <button onclick="setTab('home')" class="hover:text-cyan-400 transition">MAIN_DASH</button>
+                    <button onclick="setTab('chat')" class="hover:text-cyan-400 transition">COMM_NET</button>
+                    <button onclick="setTab('store')" class="hover:text-cyan-400 transition">DATA_STORE</button>
+                </div>
+            </nav>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 flex-1">
+                <div id="p-home" class="page lg:col-span-2 grid grid-cols-2 gap-6">
+                    <div class="nebula-card p-10 rounded-[3rem] col-span-2">
+                        <h2 class="text-4xl font-black mb-4">ACCESS_GRANTED: <span id="u-name" class="text-cyan-400">USER</span></h2>
+                        <p class="opacity-40 text-sm">Все системы синхронизированы. Ваши модули обновлены до последней версии.</p>
+                    </div>
+                    <div class="nebula-card p-8 rounded-[3rem] flex flex-col justify-center items-center">
+                        <div class="text-[10px] mb-2 opacity-50">SYSTEM_RANK</div>
+                        <div id="u-rank" class="text-3xl font-black">MEMBER</div>
+                    </div>
+                    <div class="nebula-card p-8 rounded-[3rem] flex flex-col justify-center items-center">
+                        <div class="text-[10px] mb-2 opacity-50">SUB_TYPE</div>
+                        <div id="u-sub" class="text-3xl font-black text-purple-500">NONE</div>
+                    </div>
+                </div>
+
+                <div id="p-chat" class="page hidden lg:col-span-2 nebula-card rounded-[3rem] flex flex-col">
+                    <div id="chat-box" class="flex-1 p-10 overflow-y-auto space-y-4 font-mono text-xs"></div>
+                    <div class="p-6 bg-black/40 flex gap-4">
+                        <input type="text" id="chat-in" class="flex-1 p-4 rounded-xl text-left" placeholder="Enter message...">
+                        <button onclick="send()" class="btn-hyper px-8 rounded-xl">SEND</button>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <div class="nebula-card p-8 rounded-[3rem]">
+                        <h3 class="text-xs font-black mb-6 border-b border-white/10 pb-2">NEBULA_RADIO</h3>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-cyan-400 rounded-full animate-ping absolute opacity-20"></div>
+                            <button onclick="toggleMusic()" class="relative z-10 w-12 h-12 glass rounded-full flex items-center justify-center">▶</button>
+                            <marquee class="text-xs text-cyan-400 font-bold">LOFI AMBIENT - WIND CLIENT OFFICIAL PLAYLIST</marquee>
+                        </div>
+                    </div>
+                    <div class="nebula-card p-8 rounded-[3rem] flex-1">
+                        <h3 class="text-xs font-black mb-4">REDEEM_LICENSE</h3>
+                        <input type="text" id="k-val" class="w-full p-3 rounded-xl mb-4 text-xs" placeholder="WIND-XXXX">
+                        <button onclick="activate()" class="btn-hyper w-full py-3 rounded-lg text-[10px]">REDEEM</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <audio id="bg-m" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio>
-    <audio id="s-ok" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="audio" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio>
 
     <script>
-        // Инициализация (Твоя база)
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
             apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
             authDomain: "wind-client-b6c33.firebaseapp.com",
@@ -132,118 +136,104 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let user = null;
+        let me = null;
 
-        // Эстетичное уведомление
-        function notify(text) {
-            const t = document.getElementById('toast');
-            t.innerText = text;
-            t.style.opacity = '1'; t.style.transform = 'translate(-50%, 0)';
-            setTimeout(() => { t.style.opacity = '0'; t.style.transform = 'translate(-50%, -20px)'; }, 3000);
-        }
-
-        // --- AUTH (ЖЕЛЕЗОБЕТОННЫЙ) ---
-        function authAction() {
+        // --- CORE AUTH ---
+        function auth() {
             const u = document.getElementById('u-nick').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return notify("Заполни данные!");
+            if(!u || !p) return;
 
             db.ref('users/' + u).once('value', s => {
                 if(s.exists()) {
-                    if(s.val().password === p) startApp(u, s.val());
-                    else notify("Неверный пароль!");
+                    if(s.val().password === p) enter(u, s.val());
+                    else alert("ACCESS_DENIED");
                 } else {
-                    db.ref('users/' + u).set({ password: p, rank: 'Member', sub: 'None' });
-                    notify("Аккаунт создан! Входим...");
-                    setTimeout(() => authAction(), 1000);
+                    const data = { password: p, rank: 'Member', sub: 'None' };
+                    db.ref('users/' + u).set(data).then(() => enter(u, data));
                 }
             });
         }
 
-        function startApp(nick, data) {
-            user = { nick, ...data };
-            localStorage.setItem('wind_session', JSON.stringify(user));
-            
-            document.getElementById('auth-page').style.display = 'none';
-            document.getElementById('main-ui').classList.remove('hidden');
-            document.getElementById('display-name').innerText = nick;
-            
-            if(nick.toLowerCase() === 'developer') document.getElementById('t-dev').classList.remove('hidden');
-            
-            loadChat();
-            document.getElementById('s-ok').play();
+        function enter(u, data) {
+            me = u;
+            document.getElementById('auth-page').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+            document.getElementById('u-name').innerText = u.toUpperCase();
+            document.getElementById('u-rank').innerText = data.rank;
+            document.getElementById('u-sub').innerText = data.sub;
+            initChat();
         }
 
-        // --- NAVIGATION ---
-        function tab(id) {
-            ['home', 'shop', 'chat', 'dev'].forEach(t => {
-                const p = document.getElementById('p-' + t);
-                const b = document.getElementById('t-' + t);
-                if(p) p.classList.add('hidden');
-                if(b) b.classList.remove('active');
-            });
-            document.getElementById('p-' + id).classList.remove('hidden');
-            document.getElementById('t-' + id).classList.add('active');
+        function setTab(name) {
+            document.getElementById('p-home').classList.add('hidden');
+            document.getElementById('p-chat').classList.add('hidden');
+            document.getElementById('p-' + name).classList.remove('hidden');
         }
 
         // --- CHAT ---
-        function sendMsg() {
-            const txt = document.getElementById('chat-msg').value;
-            if(!txt) return;
-            db.ref('chat').push({ u: user.nick, m: txt, r: user.rank });
-            document.getElementById('chat-msg').value = "";
+        function send() {
+            const t = document.getElementById('chat-in').value;
+            if(!t) return;
+            db.ref('chat').push({ u: me, m: t });
+            document.getElementById('chat-in').value = "";
         }
 
-        function loadChat() {
+        function initChat() {
             db.ref('chat').limitToLast(30).on('value', s => {
-                const box = document.getElementById('chat-messages');
+                const box = document.getElementById('chat-box');
                 box.innerHTML = "";
                 s.forEach(m => {
-                    const isDev = m.val().r === 'Admin' || m.val().u === 'developer';
-                    box.innerHTML += `<div>
-                        <span class="font-black text-[10px] tracking-tighter ${isDev ? 'text-emerald-400' : 'text-gray-600'}">${m.val().u.toUpperCase()}</span>
-                        <p class="mt-1 opacity-80">${m.val().m}</p>
-                    </div>`;
+                    box.innerHTML += `<div class="p-2 border-l-2 border-cyan-400 bg-white/5"><span class="text-cyan-400 font-black">${m.val().u}:</span> ${m.val().m}</div>`;
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        // --- EFFECTS ---
-        // Следящий свет
-        document.addEventListener('mousemove', (e) => {
-            const orb = document.getElementById('cursor-orb');
-            orb.style.left = (e.clientX - 300) + 'px';
-            orb.style.top = (e.clientY - 300) + 'px';
+        // --- CANVAS ENGINE (ЧАСТИЦЫ) ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            for(let i=0; i<100; i++) particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 2,
+                vy: (Math.random() - 0.5) * 2,
+                size: Math.random() * 2
+            });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ffcc";
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        }
+        initCanvas(); draw();
+
+        // Свечение за курсором
+        document.addEventListener('mousemove', e => {
+            const glow = document.getElementById('cursor-glow');
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
         });
 
-        // Дождь
-        for(let i=0; i<30; i++) {
-            const d = document.createElement('div');
-            d.className = 'drop';
-            d.style.left = Math.random() * 100 + 'vw';
-            d.style.animationDuration = Math.random() * 0.5 + 0.5 + 's';
-            document.getElementById('rain-layer').appendChild(d);
-        }
-
-        // Музыка
-        let playing = false;
+        let music = false;
         function toggleMusic() {
-            const m = document.getElementById('bg-m');
-            if(!playing) m.play(); else m.pause();
-            playing = !playing;
-            document.getElementById('m-status').innerText = playing ? "WIND ZEN: ON" : "WIND ZEN: OFF";
-        }
-
-        // Авто-вход
-        window.onload = () => {
-            const saved = localStorage.getItem('wind_session');
-            if(saved) {
-                const d = JSON.parse(saved);
-                document.getElementById('u-nick').value = d.nick;
-                document.getElementById('u-pass').value = d.password;
-                authAction();
-            }
+            const a = document.getElementById('audio');
+            if(!music) a.play(); else a.pause();
+            music = !music;
         }
     </script>
 </body>
