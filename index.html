@@ -2,239 +2,198 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND | NEBULA SYSTEM</title>
+    <title>WIND | Hyper Stable</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Montserrat:wght@300;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@700&family=Orbitron:wght@900&display=swap" rel="stylesheet">
     
     <style>
-        :root { --main: #00ffcc; --second: #7000ff; --bg: #020205; }
-        body { background: var(--bg); color: white; font-family: 'Montserrat', sans-serif; overflow: hidden; margin: 0; }
-        canvas { position: fixed; top: 0; left: 0; z-index: -1; }
-
-        /* Эффект свечения курсора */
-        #cursor-glow {
-            position: fixed; width: 400px; height: 400px;
-            background: radial-gradient(circle, rgba(0,255,204,0.15) 0%, rgba(112,0,255,0.05) 50%, transparent 70%);
-            border-radius: 50%; pointer-events: none; z-index: 0; transform: translate(-50%, -50%);
-        }
-
-        /* Неоновые карточки */
+        body { background: #020205; color: white; font-family: 'Inter', sans-serif; overflow: hidden; }
+        canvas { position: fixed; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        
+        /* Слой кнопок — САМЫЙ ВЫСОКИЙ */
+        .interactive-layer { position: relative; z-index: 9999; }
+        
         .nebula-card {
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative; overflow: hidden;
-            transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            background: rgba(10, 10, 15, 0.9);
+            border: 2px solid rgba(0, 255, 204, 0.3);
+            box-shadow: 0 0 40px rgba(0, 255, 204, 0.1);
+            border-radius: 30px;
         }
-        .nebula-card::before {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: conic-gradient(transparent, var(--main), transparent, var(--second), transparent);
-            animation: rotate 6s linear infinite; opacity: 0.3; z-index: -1;
-        }
-        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
         .btn-hyper {
-            background: linear-gradient(90deg, var(--main), var(--second));
-            font-weight: 900; letter-spacing: 2px; color: black;
-            box-shadow: 0 0 30px rgba(0,255,204,0.4);
-            transition: 0.4s; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%);
+            background: #00ffcc;
+            color: black;
+            font-weight: 900;
+            padding: 20px;
+            border-radius: 12px;
+            cursor: pointer !important;
+            transition: 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+            display: block;
+            border: none;
         }
-        .btn-hyper:hover { transform: scale(1.1) skew(-5deg); box-shadow: 0 0 60px var(--main); }
+        .btn-hyper:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .btn-hyper:active { transform: scale(0.98); }
 
-        .glitch-text { font-family: 'Syncopate', sans-serif; text-transform: uppercase; }
-        
-        /* Плавные табы */
-        .page { animation: slideUp 1s ease-out; }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(50px) scale(0.9); filter: blur(10px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+        .input-nebula {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 15px;
+            border-radius: 12px;
+            color: #00ffcc;
+            width: 100%;
+            text-align: center;
+            outline: none;
+        }
+        .input-nebula:focus { border-color: #00ffcc; }
 
-        input { background: rgba(0,0,0,0.5) !important; border: 1px solid var(--main) !important; color: var(--main) !important; text-align: center; }
+        #error-out { color: #ff4444; font-size: 11px; margin-top: 15px; font-family: monospace; min-height: 20px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <canvas id="canvas"></canvas>
-    <div id="cursor-glow"></div>
+    <canvas id="bg-stars"></canvas>
 
-    <div id="ui-wrapper" class="relative z-10 h-screen flex flex-col items-center justify-center p-6">
-        
-        <div id="auth-page" class="nebula-card p-16 rounded-[4rem] w-full max-w-lg text-center">
-            <h1 class="glitch-text text-7xl mb-2 tracking-tighter" style="color: var(--main); text-shadow: 0 0 20px var(--main);">WIND</h1>
-            <p class="text-[10px] tracking-[1em] mb-12 opacity-50">ULTIMATE CLIENT ECOSYSTEM</p>
+    <div id="auth-page" class="interactive-layer min-h-screen flex items-center justify-center">
+        <div class="nebula-card p-10 w-full max-w-md text-center">
+            <h1 style="font-family: 'Orbitron'; color: #00ffcc; font-size: 45px; margin-bottom: 30px;">WIND</h1>
             
-            <div class="space-y-6">
-                <input type="text" id="u-nick" placeholder="NICKNAME" class="w-full p-5 rounded-2xl font-bold">
-                <input type="password" id="u-pass" placeholder="PASSWORD" class="w-full p-5 rounded-2xl font-bold">
-                <button onclick="auth()" class="btn-hyper w-full py-6 rounded-xl mt-4">INITIALIZE SYSTEM</button>
+            <div class="space-y-4">
+                <input type="text" id="u-name" placeholder="LOGIN" class="input-nebula">
+                <input type="password" id="u-pass" placeholder="PASSWORD" class="input-nebula">
+                
+                <button onclick="handleAuth()" id="main-btn" class="btn-hyper">INITIALIZE SYSTEM</button>
+                
+                <div id="error-out"></div>
             </div>
         </div>
+    </div>
 
-        <div id="main-app" class="hidden w-full max-w-7xl h-full py-10 flex flex-col">
-            <nav class="flex justify-between items-center mb-16">
-                <div class="glitch-text text-2xl border-l-4 border-cyan-400 pl-4">WIND//OS</div>
-                <div class="flex gap-10 text-[10px] font-black tracking-widest">
-                    <button onclick="setTab('home')" class="hover:text-cyan-400 transition">MAIN_DASH</button>
-                    <button onclick="setTab('chat')" class="hover:text-cyan-400 transition">COMM_NET</button>
-                    <button onclick="setTab('store')" class="hover:text-cyan-400 transition">DATA_STORE</button>
-                </div>
-            </nav>
+    <div id="main-app" class="interactive-layer hidden min-h-screen p-8">
+        <div class="flex justify-between border-b border-cyan-400/20 pb-4 mb-10">
+            <span style="font-family: 'Syncopate';" class="text-cyan-400">WIND_CORE_v6</span>
+            <span id="welcome-user" class="text-xs uppercase font-bold">GUEST</span>
+        </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 flex-1">
-                <div id="p-home" class="page lg:col-span-2 grid grid-cols-2 gap-6">
-                    <div class="nebula-card p-10 rounded-[3rem] col-span-2">
-                        <h2 class="text-4xl font-black mb-4">ACCESS_GRANTED: <span id="u-name" class="text-cyan-400">USER</span></h2>
-                        <p class="opacity-40 text-sm">Все системы синхронизированы. Ваши модули обновлены до последней версии.</p>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 nebula-card p-8">
+                <h2 class="text-2xl font-black mb-6">DASHBOARD</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
+                        <div class="text-[10px] opacity-40 mb-1">USER_RANK</div>
+                        <div id="val-rank" class="font-bold">...</div>
                     </div>
-                    <div class="nebula-card p-8 rounded-[3rem] flex flex-col justify-center items-center">
-                        <div class="text-[10px] mb-2 opacity-50">SYSTEM_RANK</div>
-                        <div id="u-rank" class="text-3xl font-black">MEMBER</div>
-                    </div>
-                    <div class="nebula-card p-8 rounded-[3rem] flex flex-col justify-center items-center">
-                        <div class="text-[10px] mb-2 opacity-50">SUB_TYPE</div>
-                        <div id="u-sub" class="text-3xl font-black text-purple-500">NONE</div>
+                    <div class="bg-white/5 p-6 rounded-2xl border border-white/5">
+                        <div class="text-[10px] opacity-40 mb-1">SUB_STATUS</div>
+                        <div id="val-sub" class="font-bold text-purple-400">...</div>
                     </div>
                 </div>
+            </div>
 
-                <div id="p-chat" class="page hidden lg:col-span-2 nebula-card rounded-[3rem] flex flex-col">
-                    <div id="chat-box" class="flex-1 p-10 overflow-y-auto space-y-4 font-mono text-xs"></div>
-                    <div class="p-6 bg-black/40 flex gap-4">
-                        <input type="text" id="chat-in" class="flex-1 p-4 rounded-xl text-left" placeholder="Enter message...">
-                        <button onclick="send()" class="btn-hyper px-8 rounded-xl">SEND</button>
-                    </div>
-                </div>
-
-                <div class="space-y-6">
-                    <div class="nebula-card p-8 rounded-[3rem]">
-                        <h3 class="text-xs font-black mb-6 border-b border-white/10 pb-2">NEBULA_RADIO</h3>
-                        <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 bg-cyan-400 rounded-full animate-ping absolute opacity-20"></div>
-                            <button onclick="toggleMusic()" class="relative z-10 w-12 h-12 glass rounded-full flex items-center justify-center">▶</button>
-                            <marquee class="text-xs text-cyan-400 font-bold">LOFI AMBIENT - WIND CLIENT OFFICIAL PLAYLIST</marquee>
-                        </div>
-                    </div>
-                    <div class="nebula-card p-8 rounded-[3rem] flex-1">
-                        <h3 class="text-xs font-black mb-4">REDEEM_LICENSE</h3>
-                        <input type="text" id="k-val" class="w-full p-3 rounded-xl mb-4 text-xs" placeholder="WIND-XXXX">
-                        <button onclick="activate()" class="btn-hyper w-full py-3 rounded-lg text-[10px]">REDEEM</button>
-                    </div>
+            <div class="nebula-card p-6 h-[400px] flex flex-col">
+                <div id="chat-box" class="flex-1 overflow-y-auto text-[11px] space-y-2 mb-4 font-mono"></div>
+                <div class="flex gap-2">
+                    <input type="text" id="chat-in" class="input-nebula p-2 text-left text-xs" placeholder="Message">
+                    <button onclick="sendMsg()" class="btn-hyper w-10 p-0">></button>
                 </div>
             </div>
         </div>
     </div>
 
-    <audio id="audio" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio>
-
     <script>
-        // --- FIREBASE CONFIG ---
-        const firebaseConfig = {
+        // Инициализация базы
+        const config = {
             apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
             authDomain: "wind-client-b6c33.firebaseapp.com",
             databaseURL: "https://wind-client-b6c33-default-rtdb.firebaseio.com",
             projectId: "wind-client-b6c33"
         };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(config);
         const db = firebase.database();
 
-        let me = null;
+        const btn = document.getElementById('main-btn');
+        const err = document.getElementById('error-out');
 
-        // --- CORE AUTH ---
-        function auth() {
-            const u = document.getElementById('u-nick').value.trim();
+        function handleAuth() {
+            const u = document.getElementById('u-name').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return;
 
-            db.ref('users/' + u).once('value', s => {
+            if(!u || !p) {
+                err.innerText = "ПОЛЯ НЕ МОГУТ БЫТЬ ПУСТЫМИ";
+                return;
+            }
+
+            btn.innerText = "CONNECTING...";
+            btn.style.opacity = "0.5";
+
+            db.ref('users/' + u).once('value').then(s => {
                 if(s.exists()) {
-                    if(s.val().password === p) enter(u, s.val());
-                    else alert("ACCESS_DENIED");
+                    if(s.val().password === p) {
+                        launch(u, s.val());
+                    } else {
+                        err.innerText = "НЕВЕРНЫЙ ПАРОЛЬ";
+                        resetBtn();
+                    }
                 } else {
                     const data = { password: p, rank: 'Member', sub: 'None' };
-                    db.ref('users/' + u).set(data).then(() => enter(u, data));
+                    db.ref('users/' + u).set(data).then(() => launch(u, data));
                 }
+            }).catch(e => {
+                err.innerText = "ОШИБКА БАЗЫ: " + e.message;
+                resetBtn();
             });
         }
 
-        function enter(u, data) {
-            me = u;
+        function resetBtn() {
+            btn.innerText = "INITIALIZE SYSTEM";
+            btn.style.opacity = "1";
+        }
+
+        function launch(nick, data) {
             document.getElementById('auth-page').classList.add('hidden');
             document.getElementById('main-app').classList.remove('hidden');
-            document.getElementById('u-name').innerText = u.toUpperCase();
-            document.getElementById('u-rank').innerText = data.rank;
-            document.getElementById('u-sub').innerText = data.sub;
-            initChat();
-        }
-
-        function setTab(name) {
-            document.getElementById('p-home').classList.add('hidden');
-            document.getElementById('p-chat').classList.add('hidden');
-            document.getElementById('p-' + name).classList.remove('hidden');
-        }
-
-        // --- CHAT ---
-        function send() {
-            const t = document.getElementById('chat-in').value;
-            if(!t) return;
-            db.ref('chat').push({ u: me, m: t });
-            document.getElementById('chat-in').value = "";
-        }
-
-        function initChat() {
-            db.ref('chat').limitToLast(30).on('value', s => {
+            document.getElementById('welcome-user').innerText = nick;
+            document.getElementById('val-rank').innerText = data.rank;
+            document.getElementById('val-sub').innerText = data.sub;
+            
+            // Запуск чата
+            db.ref('chat').limitToLast(15).on('value', s => {
                 const box = document.getElementById('chat-box');
                 box.innerHTML = "";
                 s.forEach(m => {
-                    box.innerHTML += `<div class="p-2 border-l-2 border-cyan-400 bg-white/5"><span class="text-cyan-400 font-black">${m.val().u}:</span> ${m.val().m}</div>`;
+                    box.innerHTML += `<div><span class="text-cyan-400">[${m.val().u}]</span>: ${m.val().m}</div>`;
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        // --- CANVAS ENGINE (ЧАСТИЦЫ) ---
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function initCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            for(let i=0; i<100; i++) particles.push({
-                x: Math.random() * canvas.width,
-                y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 2,
-                vy: (Math.random() - 0.5) * 2,
-                size: Math.random() * 2
-            });
+        function sendMsg() {
+            const t = document.getElementById('chat-in').value;
+            const u = document.getElementById('welcome-user').innerText;
+            if(t) {
+                db.ref('chat').push({ u: u, m: t });
+                document.getElementById('chat-in').value = "";
+            }
         }
 
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#00ffcc";
-            particles.forEach(p => {
-                p.x += p.vx; p.y += p.vy;
-                if(p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if(p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            requestAnimationFrame(draw);
+        // Фон — простенький для стабильности
+        const c = document.getElementById('bg-stars');
+        const x = c.getContext('2d');
+        function sz() { c.width = window.innerWidth; c.height = window.innerHeight; }
+        window.onresize = sz; sz();
+        function loop() {
+            x.fillStyle = 'rgba(2,2,5,0.2)'; x.fillRect(0,0,c.width,c.height);
+            for(i=0;i<50;i++) {
+                x.fillStyle = '#00ffcc';
+                x.fillRect(Math.random()*c.width, Math.random()*c.height, 1, 1);
+            }
+            requestAnimationFrame(loop);
         }
-        initCanvas(); draw();
-
-        // Свечение за курсором
-        document.addEventListener('mousemove', e => {
-            const glow = document.getElementById('cursor-glow');
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
-        });
-
-        let music = false;
-        function toggleMusic() {
-            const a = document.getElementById('audio');
-            if(!music) a.play(); else a.pause();
-            music = !music;
-        }
+        loop();
     </script>
 </body>
 </html>
