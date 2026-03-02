@@ -2,193 +2,242 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>WIND | Experience</title>
+    <title>WIND | Rainy Zen</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;800&display=swap" rel="stylesheet">
 
     <style>
-        :root { --accent: #8b5cf6; --bg: #030303; }
-        body { background: var(--bg); color: white; font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .glass { background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.05); }
-        .btn-accent { background: var(--accent); box-shadow: 0 0 20px var(--accent); transition: 0.3s; cursor: pointer; z-index: 10; }
-        .btn-accent:active { transform: scale(0.95); }
-        
-        /* Бешеные анимации */
-        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.9); filter: blur(10px); } to { opacity: 1; transform: scale(1); filter: blur(0); } }
+        :root { --accent: #8b5cf6; --bg: #050505; }
+        body { 
+            background: var(--bg); 
+            color: white; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Дождь */
+        .drop {
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0.4));
+            width: 1px;
+            height: 80px;
+            top: -100px;
+            pointer-events: none;
+            animation: fall linear infinite;
+        }
+        @keyframes fall { to { transform: translateY(110vh); } }
+
+        /* Стекло и Кнопки */
+        .glass {
+            background: rgba(15, 15, 15, 0.4);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .input-zen {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.4s;
+            outline: none;
+        }
+        .input-zen:focus { border-color: var(--accent); background: rgba(255,255,255,0.06); }
+
+        .btn-zen {
+            background: var(--accent);
+            color: white;
+            font-weight: 800;
+            letter-spacing: 1px;
+            transition: all 0.4s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-zen:hover { transform: translateY(-2px); filter: brightness(1.2); box-shadow: 0 0 30px var(--accent); }
+        .btn-zen:active { transform: scale(0.96); }
+
+        /* Плавное появление */
+        .page-enter { animation: pageEnter 1.5s ease-out forwards; }
+        @keyframes pageEnter {
+            from { opacity: 0; filter: blur(20px); transform: scale(1.1); }
+            to { opacity: 1; filter: blur(0); transform: scale(1); }
+        }
 
         /* Уведомление */
-        #toast { position: fixed; top: 20px; right: 20px; padding: 15px 30px; border-radius: 15px; z-index: 1000; transform: translateX(200%); transition: 0.5s cubic-bezier(0.17, 0.67, 0.83, 0.67); }
-        #toast.show { transform: translateX(0); }
-
-        .snowflake { position: fixed; top: -10%; color: white; pointer-events: none; z-index: -1; animation: fall linear infinite; }
-        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+        #notif {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translate(-50%, 100px);
+            transition: 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1000;
+        }
+        #notif.active { transform: translate(-50%, 0); }
     </style>
 </head>
-<body>
+<body class="page-enter">
 
-    <div id="snow-container"></div>
-    <div id="toast" class="glass font-bold text-sm"></div>
+    <div id="rain-layer"></div>
+    <div id="notif" class="glass px-8 py-4 rounded-full text-sm font-bold border-purple-500/30"></div>
 
-    <div class="fixed bottom-6 left-6 z-[100]">
-        <button onclick="document.getElementById('set-m').classList.toggle('hidden')" class="glass w-12 h-12 rounded-full flex items-center justify-center">⚙️</button>
-        <div id="set-m" class="hidden absolute bottom-16 left-0 glass p-6 rounded-3xl w-64 fade-in">
-            <p class="text-[10px] text-gray-500 mb-2 uppercase">Тема</p>
-            <div class="flex gap-2 mb-4">
-                <div onclick="changeTheme('#a3e635')" class="w-6 h-6 rounded-full bg-lime-400 cursor-pointer"></div>
-                <div onclick="changeTheme('#8b5cf6')" class="w-6 h-6 rounded-full bg-purple-500 cursor-pointer"></div>
-                <div onclick="changeTheme('#3b82f6')" class="w-6 h-6 rounded-full bg-blue-500 cursor-pointer"></div>
-                <div onclick="changeTheme('#991b1b')" class="w-6 h-6 rounded-full bg-red-800 cursor-pointer"></div>
+    <div class="fixed top-6 right-6 z-50">
+        <button onclick="toggleSet()" class="glass w-12 h-12 rounded-full flex items-center justify-center hover:rotate-45">⚙️</button>
+        <div id="set-box" class="hidden absolute top-16 right-0 glass p-6 rounded-3xl w-64">
+            <p class="text-[10px] text-gray-500 mb-3 uppercase tracking-widest">Ambient Color</p>
+            <div class="flex gap-2 mb-6">
+                <div onclick="setClr('#a3e635')" class="w-6 h-6 rounded-full bg-lime-400 cursor-pointer"></div>
+                <div onclick="setClr('#8b5cf6')" class="w-6 h-6 rounded-full bg-purple-500 cursor-pointer"></div>
+                <div onclick="setClr('#06b6d4')" class="w-6 h-6 rounded-full bg-cyan-400 cursor-pointer"></div>
+                <div onclick="setClr('#f43f5e')" class="w-6 h-6 rounded-full bg-rose-500 cursor-pointer"></div>
             </div>
-            <button onclick="toggleMusic()" id="m-btn" class="text-xs uppercase font-bold text-purple-400">Включить Музыку 🎵</button>
+            <button onclick="togglePlay()" id="play-btn" class="w-full glass py-2 rounded-xl text-xs">Play Relaxing Music 🎧</button>
         </div>
     </div>
 
-    <div class="min-h-screen flex flex-col items-center justify-center py-20">
-        <h1 class="text-8xl font-black mb-12 italic fade-in tracking-tighter" style="color: var(--accent); text-shadow: 0 0 30px var(--accent)">WIND</h1>
+    <div class="min-h-screen flex flex-col items-center justify-center p-6">
+        <h1 id="main-logo" class="text-8xl font-black italic mb-12 tracking-tighter transition-all duration-1000" style="color: var(--accent); text-shadow: 0 0 40px var(--accent);">WIND</h1>
 
-        <div id="auth-card" class="glass p-10 rounded-[3rem] w-full max-w-sm fade-in shadow-2xl relative z-10">
-            <div class="flex justify-center gap-6 mb-8 text-xs font-black uppercase">
-                <button onclick="setMode('login')" id="l-tab" class="text-purple-500 border-b-2 border-purple-500 pb-1">Вход</button>
-                <button onclick="setMode('reg')" id="r-tab" class="text-gray-500">Регистрация</button>
+        <div id="auth-ui" class="glass p-10 rounded-[3rem] w-full max-w-sm">
+            <div class="flex justify-center gap-8 mb-10 text-[10px] font-black uppercase tracking-[3px]">
+                <button onclick="setTab('login')" id="l-tab" class="text-purple-400">LOGIN</button>
+                <button onclick="setTab('reg')" id="r-tab" class="text-gray-600">REGISTER</button>
             </div>
 
             <div class="space-y-4">
-                <input type="text" id="u-name" placeholder="Username" class="w-full p-4 glass rounded-2xl outline-none border border-white/5 focus:border-purple-500 transition-all">
-                <input type="password" id="u-pass" placeholder="Password" class="w-full p-4 glass rounded-2xl outline-none border border-white/5 focus:border-purple-500 transition-all">
-                <button onclick="processAuth()" class="btn-accent w-full py-4 rounded-2xl font-black text-lg uppercase tracking-widest mt-4">Выполнить</button>
+                <input type="text" id="u-nick" placeholder="Username" class="input-zen w-full p-4 rounded-2xl">
+                <input type="password" id="u-pass" placeholder="Password" class="input-zen w-full p-4 rounded-2xl">
+                <button onclick="startAuth()" class="btn-zen w-full py-5 rounded-2xl uppercase text-xs tracking-widest">Confirm</button>
             </div>
         </div>
 
-        <div id="dev-panel" class="hidden glass p-10 rounded-[3.5rem] w-full max-w-4xl mt-10 fade-in border-2 border-purple-500/20">
-            <div class="flex justify-between items-center mb-10">
-                <h2 class="text-4xl font-black italic">DEV <span style="color: var(--accent)">PORTAL</span></h2>
-                <button onclick="location.reload()" class="bg-red-600/20 text-red-500 px-6 py-2 rounded-xl font-bold">LOGOUT</button>
+        <div id="admin-ui" class="hidden glass p-12 rounded-[4rem] w-full max-w-5xl">
+            <div class="flex justify-between items-center mb-16">
+                <h2 class="text-4xl font-black italic tracking-tighter">WIND <span style="color: var(--accent)">MASTER</span></h2>
+                <button onclick="location.reload()" class="text-gray-500 hover:text-red-500 transition">EXIT</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="glass p-6 rounded-3xl">
-                    <p class="text-[10px] text-gray-500 uppercase mb-4">Генератор лицензий</p>
-                    <select id="k-type" class="w-full p-3 glass rounded-xl mb-4 outline-none">
-                        <option value="lifetime">Lifetime Premium+</option>
-                        <option value="30_days">30 Days Access</option>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div class="glass p-8 rounded-[2.5rem]">
+                    <p class="text-[10px] text-gray-500 mb-6 uppercase">License Factory</p>
+                    <select id="k-type" class="w-full bg-black/40 p-4 rounded-2xl mb-6 outline-none text-sm">
+                        <option value="lifetime_premium_plus">Lifetime Premium+</option>
+                        <option value="360_days">360 Days Access</option>
                     </select>
-                    <button onclick="makeKey()" class="btn-accent w-full py-3 rounded-xl font-bold">ГЕНЕРИРОВАТЬ</button>
+                    <button onclick="genKey()" class="btn-zen w-full py-4 rounded-xl text-xs uppercase">Generate</button>
                 </div>
-                <div class="glass p-6 rounded-3xl">
-                    <p class="text-[10px] text-gray-500 uppercase mb-4">Управление правами</p>
-                    <input type="text" id="target" placeholder="Ник пользователя" class="w-full p-3 glass rounded-xl mb-4 outline-none">
-                    <button onclick="giveRank('Admin')" class="w-full bg-red-600 py-3 rounded-xl font-bold">ВЫДАТЬ АДМИНКУ</button>
+                <div class="glass p-8 rounded-[2.5rem]">
+                    <p class="text-[10px] text-gray-500 mb-6 uppercase">Privileges</p>
+                    <input type="text" id="target" placeholder="User nickname" class="input-zen w-full p-4 rounded-2xl mb-4 text-sm">
+                    <button onclick="giveAdm()" class="w-full py-4 rounded-xl text-xs uppercase border border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white transition">Give Administrator</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-17.mp3"></audio>
-    <audio id="snd-success" src="https://cdn.pixabay.com/audio/2022/03/15/audio_78385906d7.mp3"></audio>
-    <audio id="snd-error" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c330c6a59b.mp3"></audio>
+    <audio id="ambience" loop src="https://stream.zeno.fm/0r0xa792kwzuv"></audio> <audio id="click-ok" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="click-err" src="https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"></audio>
 
     <script>
-        const config = {
+        const firebaseConfig = {
             apiKey: "AIzaSyDy4mU5xpso1OtTA86rbABnwXU6xH_Y5Jk",
             authDomain: "wind-client-b6c33.firebaseapp.com",
             databaseURL: "https://wind-client-b6c33-default-rtdb.firebaseio.com",
             projectId: "wind-client-b6c33"
         };
-        firebase.initializeApp(config);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let currentMode = 'login';
+        let tab = 'login';
 
-        function showToast(msg, color = 'var(--accent)') {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.borderLeft = `4px solid ${color}`;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+        function msg(text, success = true) {
+            const n = document.getElementById('notif');
+            n.innerText = text;
+            n.style.color = success ? '#fff' : '#ff4e4e';
+            n.classList.add('active');
+            setTimeout(() => n.classList.remove('active'), 3000);
+            document.getElementById(success ? 'click-ok' : 'click-err').play();
         }
 
-        function playSnd(type) {
-            document.getElementById(type === 'ok' ? 'snd-success' : 'snd-error').play();
+        function setTab(t) {
+            tab = t;
+            document.getElementById('l-tab').className = t === 'login' ? "text-purple-400" : "text-gray-600";
+            document.getElementById('r-tab').className = t === 'reg' ? "text-purple-400" : "text-gray-600";
         }
 
-        function setMode(m) {
-            currentMode = m;
-            document.getElementById('l-tab').className = m === 'login' ? "text-purple-500 border-b-2 border-purple-500 pb-1" : "text-gray-500";
-            document.getElementById('r-tab').className = m === 'reg' ? "text-purple-500 border-b-2 border-purple-500 pb-1" : "text-gray-500";
-        }
-
-        function processAuth() {
-            const u = document.getElementById('u-name').value.trim();
+        function startAuth() {
+            const u = document.getElementById('u-nick').value.trim();
             const p = document.getElementById('u-pass').value.trim();
-            if(!u || !p) return showToast("Заполни поля!", "red");
+            if(!u || !p) return msg("Field is empty", false);
 
-            if(currentMode === 'reg') {
+            if(tab === 'reg') {
                 db.ref('users/' + u).set({ password: p, rank: 'User' });
-                playSnd('ok');
-                showToast("Аккаунт создан успешно!");
-                setMode('login');
+                msg("Account Created");
+                setTab('login');
             } else {
-                db.ref('users/' + u).once('value', s => {
-                    if(s.exists()) {
-                        showToast("Пользователь найден...");
-                        if(s.val().password === p) {
-                            playSnd('ok');
-                            showToast("Верный пароль! Вход...", "#10b981");
-                            document.getElementById('auth-card').classList.add('hidden');
-                            if(u === 'developer') document.getElementById('dev-panel').classList.remove('hidden');
-                        } else {
-                            playSnd('err');
-                            showToast("Неверный пароль!", "#ef4444");
-                        }
+                db.ref('users/' + u).once('value').then(snap => {
+                    if(snap.exists()) {
+                        msg("User found...");
+                        setTimeout(() => {
+                            if(snap.val().password === p) {
+                                msg("Password correct!");
+                                setTimeout(() => {
+                                    document.getElementById('auth-ui').classList.add('hidden');
+                                    if(u.toLowerCase() === 'developer') document.getElementById('admin-ui').classList.remove('hidden');
+                                }, 800);
+                            } else {
+                                msg("Wrong password", false);
+                            }
+                        }, 1000);
                     } else {
-                        playSnd('err');
-                        showToast("Пользователь не найден!", "#ef4444");
+                        msg("User not found", false);
                     }
                 });
             }
         }
 
-        // Плеер
-        function toggleMusic() {
-            const m = document.getElementById('bg-music');
-            const b = document.getElementById('m-btn');
-            if(m.paused) { m.play(); b.innerText = "Музыка: ВКЛ 🎵"; }
-            else { m.pause(); b.innerText = "Музыка: ВЫКЛ 🔇"; }
+        // Рандомный дождь
+        function createRain() {
+            const container = document.getElementById('rain-layer');
+            for(let i=0; i<100; i++) {
+                const drop = document.createElement('div');
+                drop.className = 'drop';
+                drop.style.left = Math.random() * 100 + 'vw';
+                drop.style.animationDuration = (Math.random() * 0.5 + 0.5) + 's';
+                drop.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(drop);
+            }
         }
+        createRain();
 
-        function changeTheme(c) {
+        function toggleSet() { document.getElementById('set-box').classList.toggle('hidden'); }
+        function setClr(c) { 
             document.documentElement.style.setProperty('--accent', c);
-            showToast("Цвет изменен!");
+            document.getElementById('main-logo').style.textShadow = `0 0 40px ${c}`;
+        }
+        
+        let playing = false;
+        function togglePlay() {
+            const a = document.getElementById('ambience');
+            const b = document.getElementById('play-btn');
+            if(!playing) { a.play(); b.innerText = "Music: ON"; }
+            else { a.pause(); b.innerText = "Music: OFF"; }
+            playing = !playing;
         }
 
-        // Снежинки
-        function createSnow() {
-            const s = document.createElement('div');
-            s.className = 'snowflake';
-            s.innerHTML = '❄';
-            s.style.left = Math.random() * 100 + 'vw';
-            s.style.animationDuration = Math.random() * 3 + 2 + 's';
-            s.style.opacity = Math.random();
-            document.getElementById('snow-container').appendChild(s);
-            setTimeout(() => s.remove(), 5000);
-        }
-        setInterval(createSnow, 100);
-
-        // Админ функции
-        function makeKey() {
-            const k = "WIND-" + Math.random().toString(36).substring(2, 12).toUpperCase();
-            db.ref('keys/' + k).set({ status: 'active' });
-            showToast("Ключ создан: " + k);
-            playSnd('ok');
+        function genKey() {
+            const key = "WIND-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+            db.ref('keys/' + key).set({ type: document.getElementById('k-type').value });
+            msg("Key: " + key);
         }
 
-        function giveRank(r) {
+        function giveAdm() {
             const t = document.getElementById('target').value;
-            db.ref('users/' + t).update({ rank: r });
-            showToast(`Пользователю ${t} выдана админка!`);
-            playSnd('ok');
+            if(!t) return msg("Nick required", false);
+            db.ref('users/' + t).update({ rank: 'Admin' });
+            msg("Admin status granted");
         }
     </script>
 </body>
